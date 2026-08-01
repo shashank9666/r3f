@@ -62,16 +62,18 @@ function GizmoAxisNode({ axis, onAxisClick }) {
 }
 
 function GizmoContent({ onAxisClick }) {
-  const { camera, gl } = useThree();
+  const { gl } = useThree();
   const gizmoRef = useRef();
+  const mainCamera = useStore(state => state.camera);
+  const controls = useStore(state => state.controls);
   
   // Drag state
   const isDragging = useRef(false);
   const previousMouse = useRef({ x: 0, y: 0 });
 
   useFrame(() => {
-    if (gizmoRef.current) {
-      gizmoRef.current.quaternion.copy(camera.quaternion).invert();
+    if (gizmoRef.current && mainCamera) {
+      gizmoRef.current.quaternion.copy(mainCamera.quaternion).invert();
     }
   });
 
@@ -84,28 +86,29 @@ function GizmoContent({ onAxisClick }) {
   };
 
   const handlePointerMove = (e) => {
-    if (!isDragging.current) return;
+    if (!isDragging.current || !mainCamera || !controls) return;
     e.stopPropagation();
 
     const deltaX = e.clientX - previousMouse.current.x;
     const deltaY = e.clientY - previousMouse.current.y;
     previousMouse.current = { x: e.clientX, y: e.clientY };
 
-    // Orbit the main camera
-    // Convert current camera position to spherical coordinates
-    const distance = camera.position.length();
-    const spherical = new THREE.Spherical().setFromVector3(camera.position);
+    // Orbit the main camera around its target
+    const offset = new THREE.Vector3().copy(mainCamera.position).sub(controls.target);
+    const spherical = new THREE.Spherical().setFromVector3(offset);
 
     // Apply delta (adjust sensitivity as needed)
     spherical.theta -= deltaX * 0.01;
     spherical.phi -= deltaY * 0.01;
 
     // Clamp phi to avoid flipping
-    spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi));
+    spherical.phi = Math.max(0.001, Math.min(Math.PI - 0.001, spherical.phi));
 
     // Convert back to vector and update camera
-    camera.position.setFromSpherical(spherical);
-    camera.lookAt(0, 0, 0); // Assuming origin target for now
+    offset.setFromSpherical(spherical);
+    mainCamera.position.copy(controls.target).add(offset);
+    mainCamera.lookAt(controls.target);
+    controls.update();
   };
 
   const handlePointerUp = (e) => {
@@ -146,23 +149,26 @@ function GizmoContent({ onAxisClick }) {
 }
 
 function GizmoContainer() {
-  const { size, camera: hudCamera } = useThree();
+  const { size } = useThree();
   const targetQuaternion = useRef(new THREE.Quaternion());
   const targetPosition = useRef(new THREE.Vector3());
   const isAnimating = useRef(false);
 
   // We need the main camera for animating
   const mainCamera = useStore(state => state.camera);
+  const controls = useStore(state => state.controls);
 
   const handleAxisClick = (direction) => {
-    if (!mainCamera) return;
-    const distance = mainCamera.position.length();
+    if (!mainCamera || !controls) return;
+    const distance = mainCamera.position.distanceTo(controls.target);
     
-    targetPosition.current.set(
+    const targetOffset = new THREE.Vector3(
       direction[0] * distance,
       direction[1] * distance,
       direction[2] * distance
     );
+    
+    targetPosition.current.copy(controls.target).add(targetOffset);
     
     const dummyCamera = mainCamera.clone();
     dummyCamera.position.copy(targetPosition.current);
@@ -171,21 +177,23 @@ function GizmoContainer() {
     } else {
       dummyCamera.up.set(0, 1, 0);
     }
-    dummyCamera.lookAt(0, 0, 0);
+    dummyCamera.lookAt(controls.target);
     targetQuaternion.current.copy(dummyCamera.quaternion);
     
     isAnimating.current = true;
   };
 
   useFrame((state, delta) => {
-    if (isAnimating.current && mainCamera) {
+    if (isAnimating.current && mainCamera && controls) {
       mainCamera.quaternion.slerp(targetQuaternion.current, 10 * delta);
       mainCamera.position.lerp(targetPosition.current, 10 * delta);
+      controls.update();
       
       if (mainCamera.quaternion.angleTo(targetQuaternion.current) < 0.01 && 
           mainCamera.position.distanceTo(targetPosition.current) < 0.05) {
         mainCamera.quaternion.copy(targetQuaternion.current);
         mainCamera.position.copy(targetPosition.current);
+        controls.update();
         isAnimating.current = false;
       }
     }

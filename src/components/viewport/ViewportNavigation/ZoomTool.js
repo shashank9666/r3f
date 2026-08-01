@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable react-hooks/immutability */
 import { useRef, useEffect } from 'react';
 import { useStore } from '../../../store/useStore';
 

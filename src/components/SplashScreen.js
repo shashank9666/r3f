@@ -89,7 +89,7 @@ export default function SplashScreen() {
 
           {/* Bottom Actions */}
           <div className="flex justify-center items-center py-2 text-center text-[#777777] italic tracking-wide">
-            " made for developers, by developers "
+            &quot; made for developers, by developers &quot;
           </div>
 
         </div>
