@@ -1,10 +1,10 @@
 "use client";
 
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, Grid, Edges } from "@react-three/drei";
+import { OrbitControls, FlyControls, OrthographicCamera, PerspectiveCamera, Grid, Edges } from "@react-three/drei";
 import { useStore, CANVAS_SETTINGS, GRID_SETTINGS, FOG_SETTINGS, AXES_SETTINGS } from "../../store/useStore";
 import { useEffect, useRef } from "react";
-import NavigationToolbar from "./NavigationToolbar/NavigationToolbar";
+import NavigationToolbar from "./ViewportNavigation/NavigationToolbar";
 import NavigationGizmo from "./NavigationGizmo/NavigationGizmo";
 
 function SceneRegister() {
@@ -25,25 +25,35 @@ export default function Viewport() {
     showGrid,
     showCube
   } = useStore((state) => state.viewport);
-  const { setControls } = useStore();
+  const { setControls, projection, isWalking, movementSpeed } = useStore();
   const controlsRef = useRef();
 
   useEffect(() => {
     if (controlsRef.current) {
       setControls(controlsRef.current);
     }
-  }, [setControls]);
+  }, [setControls, projection, isWalking]);
 
   return (
     <div className="relative w-full h-screen bg-[#282828] select-none">
       <NavigationToolbar />
-      <Canvas {...CANVAS_SETTINGS}>
+      <Canvas {...CANVAS_SETTINGS} camera={undefined}>
+        {projection === 'orthographic' ? (
+          <OrthographicCamera makeDefault position={[12, 9, 12]} zoom={40} near={0.1} far={1000} />
+        ) : (
+          <PerspectiveCamera makeDefault position={[12, 9, 12]} fov={45} near={0.1} far={1000} />
+        )}
+        
         <NavigationGizmo />
         <SceneRegister />
         <color attach="background" args={["#303030"]} />
         <fog attach="fog" args={[FOG_SETTINGS.color, FOG_SETTINGS.near, FOG_SETTINGS.far]} />
 
-        <OrbitControls ref={controlsRef} makeDefault />
+        {isWalking ? (
+          <FlyControls ref={controlsRef} makeDefault movementSpeed={movementSpeed} rollSpeed={0.5} dragToLook={false} />
+        ) : (
+          <OrbitControls ref={controlsRef} makeDefault />
+        )}
 
         {/* Basic lighting */}
         <ambientLight intensity={lighting.ambientIntensity} />

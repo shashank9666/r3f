@@ -87,11 +87,25 @@ export const useStore = create((set) => ({
   setControls: (controls) => set({ controls }),
 
   // Navigation and View states
-  viewMode: 'perspective',
+  viewMode: 'perspective', // legacy, we'll use projection
   setViewMode: (mode) => set({ viewMode: mode }),
-
-  navigationMode: 'orbit',
+  
+  navigationMode: 'orbit', // legacy, we'll use isWalking
   setNavigationMode: (mode) => set({ navigationMode: mode }),
+
+  // --- Toolbar Navigation State ---
+  zoomLevel: 1,
+  setZoomLevel: (level) => set({ zoomLevel: level }),
+  isPanning: false,
+  setIsPanning: (isPanning) => set({ isPanning }),
+  isWalking: false,
+  setIsWalking: (isWalking) => set({ isWalking }),
+  projection: 'perspective',
+  setProjection: (projection) => set({ projection }),
+  movementSpeed: 5,
+  setMovementSpeed: (speed) => set({ movementSpeed: speed }),
+  zoomSpeed: 0.1,
+  setZoomSpeed: (speed) => set({ zoomSpeed: speed }),
 
   // --- Interaction Engine State ---
 
