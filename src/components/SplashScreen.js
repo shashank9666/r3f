@@ -12,7 +12,7 @@ import {
 
 export default function SplashScreen() {
   return (
-    <div className="flex items-center justify-center min-h-screen w-full bg-black/40 font-sans select-none backdrop-blur-sm">
+    <div className="flex items-center justify-center min-h-screen w-full bg-black/50 font-sans select-none backdrop-blur-xl">
       {/* Splash Screen Container */}
       <div className="w-[600px] rounded-lg overflow-hidden shadow-2xl flex flex-col border border-neutral-800">
         
@@ -58,19 +58,10 @@ export default function SplashScreen() {
               <h3 className="text-[#888888] mb-2 font-medium">New File</h3>
               <ul className="flex flex-col gap-[2px]">
                 <li className="flex items-center gap-3 py-1.5 px-2 -mx-2 hover:bg-[#2d4b73] hover:text-white rounded cursor-pointer transition-colors duration-100">
-                  <FilePlus className="w-[18px] h-[18px] opacity-80" /> General
+                  <FilePlus className="w-[18px] h-[18px] opacity-80" /> New
                 </li>
                 <li className="flex items-center gap-3 py-1.5 px-2 -mx-2 hover:bg-[#2d4b73] hover:text-white rounded cursor-pointer transition-colors duration-100">
-                  <Film className="w-[18px] h-[18px] opacity-80" /> 2D Animation
-                </li>
-                <li className="flex items-center gap-3 py-1.5 px-2 -mx-2 hover:bg-[#2d4b73] hover:text-white rounded cursor-pointer transition-colors duration-100">
-                  <Hammer className="w-[18px] h-[18px] opacity-80" /> Sculpting
-                </li>
-                <li className="flex items-center gap-3 py-1.5 px-2 -mx-2 hover:bg-[#2d4b73] hover:text-white rounded cursor-pointer transition-colors duration-100">
-                  <BookOpen className="w-[18px] h-[18px] opacity-80" /> Storyboarding
-                </li>
-                <li className="flex items-center gap-3 py-1.5 px-2 -mx-2 hover:bg-[#2d4b73] hover:text-white rounded cursor-pointer transition-colors duration-100">
-                  <Wand2 className="w-[18px] h-[18px] opacity-80" /> VFX
+                  <FolderOpen className="w-[18px] h-[18px] opacity-80" /> Open
                 </li>
               </ul>
             </div>
@@ -93,9 +84,6 @@ export default function SplashScreen() {
           <div className="flex justify-between">
             <div className="flex-1">
               <ul className="flex flex-col gap-[2px]">
-                <li className="flex items-center gap-3 py-1.5 px-2 -mx-2 hover:bg-[#2d4b73] hover:text-white rounded cursor-pointer transition-colors duration-100">
-                  <FolderOpen className="w-[18px] h-[18px] opacity-80" /> Open...
-                </li>
                 <li className="flex items-center gap-3 py-1.5 px-2 -mx-2 hover:bg-[#2d4b73] hover:text-white rounded cursor-pointer transition-colors duration-100">
                   <History className="w-[18px] h-[18px] opacity-80" /> Recover Last Session
                 </li>
