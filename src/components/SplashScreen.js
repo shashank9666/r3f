@@ -81,17 +81,8 @@ export default function SplashScreen() {
           <div className="h-[1px] w-full bg-[#333333]"></div>
 
           {/* Bottom Actions */}
-          <div className="flex justify-between">
-            <div className="flex-1">
-              <ul className="flex flex-col gap-[2px]">
-                <li className="flex items-center gap-3 py-1.5 px-2 -mx-2 hover:bg-[#2d4b73] hover:text-white rounded cursor-pointer transition-colors duration-100">
-                  <History className="w-[18px] h-[18px] opacity-80" /> Recover Last Session
-                </li>
-              </ul>
-            </div>
-            <div className="flex-1 pl-4">
-              {/* Empty Space since Donate and What's New are removed */}
-            </div>
+          <div className="flex justify-center items-center py-2 text-center text-[#777777] italic tracking-wide">
+            made for developers, by developers
           </div>
 
         </div>
