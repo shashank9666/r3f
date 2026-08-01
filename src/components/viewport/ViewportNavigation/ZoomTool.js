@@ -9,20 +9,21 @@ export function useZoomTool() {
   const previousMouse = useRef({ x: 0, y: 0 });
 
   const handlePointerMove = (e) => {
-    if (isZooming.current && camera) {
+    if (isZooming.current && camera && controls) {
       const deltaY = e.clientY - previousMouse.current.y;
       
-      // Dolly camera along its local Z axis
-      // If we are in Orthographic, we would adjust zoom property instead
       if (camera.isOrthographicCamera) {
-        camera.zoom -= deltaY * zoomSpeed * 0.5;
-        camera.zoom = Math.max(0.1, camera.zoom);
+        // Exponential zoom for orthographic
+        camera.zoom *= Math.pow(0.99, deltaY * zoomSpeed);
+        camera.zoom = Math.max(0.001, camera.zoom);
         camera.updateProjectionMatrix();
       } else {
-        camera.translateZ(deltaY * zoomSpeed * 0.5);
+        // Distance-scaled dolly for perspective
+        const distance = camera.position.distanceTo(controls.target);
+        camera.translateZ(deltaY * zoomSpeed * distance * 0.05);
       }
       
-      if (controls) controls.update();
+      controls.update();
       previousMouse.current = { x: e.clientX, y: e.clientY };
     }
   };
@@ -44,15 +45,16 @@ export function useZoomTool() {
   };
 
   const stepZoom = (direction) => {
-    if (!camera) return;
+    if (!camera || !controls) return;
     if (camera.isOrthographicCamera) {
-      camera.zoom += direction > 0 ? 1 : -1;
-      camera.zoom = Math.max(0.1, camera.zoom);
+      camera.zoom *= direction > 0 ? 1.2 : 0.8;
+      camera.zoom = Math.max(0.001, camera.zoom);
       camera.updateProjectionMatrix();
     } else {
-      camera.translateZ(direction > 0 ? -2 : 2);
+      const distance = camera.position.distanceTo(controls.target);
+      camera.translateZ(direction > 0 ? -distance * 0.2 : distance * 0.2);
     }
-    if (controls) controls.update();
+    controls.update();
   };
 
   return { startZoomDrag, stepZoom };
