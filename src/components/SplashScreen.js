@@ -12,7 +12,7 @@ import {
 
 export default function SplashScreen() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-neutral-950 font-sans select-none">
+    <div className="flex items-center justify-center min-h-screen w-full bg-black/40 font-sans select-none backdrop-blur-sm">
       {/* Splash Screen Container */}
       <div className="w-[600px] rounded-lg overflow-hidden shadow-2xl flex flex-col border border-neutral-800">
         
