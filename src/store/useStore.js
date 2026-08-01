@@ -1,5 +1,25 @@
 import { create } from 'zustand';
 
+export const CANVAS_SETTINGS = {
+  shadows: true,
+  orthographic: false,
+  flat: false,
+  linear: false,
+  frameloop: "always",
+  dpr: [1, 2],
+  camera: {
+    position: [0, 2, 5],
+    fov: 45,
+    near: 0.1,
+    far: 1000,
+  },
+  gl: {
+    antialias: true,
+    alpha: true,
+    powerPreference: "high-performance",
+  }
+};
+
 // Store constant default values for the viewport
 export const useStore = create((set) => ({
   viewport: {

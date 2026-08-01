@@ -1,8 +1,8 @@
 "use client";
 
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, Grid, PerspectiveCamera, Edges } from "@react-three/drei";
-import { useStore } from "../../store/useStore";
+import { OrbitControls, Grid, Edges } from "@react-three/drei";
+import { useStore, CANVAS_SETTINGS } from "../../store/useStore";
 import { useEffect } from "react";
 
 function SceneRegister() {
@@ -18,7 +18,6 @@ function SceneRegister() {
 
 export default function Viewport() {
   const { 
-    camera, 
     lighting, 
     showGrid, 
     showCube 
@@ -26,11 +25,10 @@ export default function Viewport() {
 
   return (
     <div className="w-full h-screen bg-[#282828] select-none">
-      <Canvas>
+      <Canvas {...CANVAS_SETTINGS}>
         <SceneRegister />
         <color attach="background" args={["#303030"]} />
         
-        <PerspectiveCamera makeDefault position={camera.position} fov={camera.fov} />
         <OrbitControls makeDefault />
 
         {/* Basic lighting */}
