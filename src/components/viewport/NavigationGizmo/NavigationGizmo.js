@@ -5,6 +5,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { Hud, PerspectiveCamera, OrthographicCamera, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import Axis from './Axis';
+import { useStore } from '../../../store/useStore';
 
 // Constants for axis positions and colors
 const AXES = [
@@ -17,20 +18,73 @@ const AXES = [
 ];
 
 function GizmoContent({ onAxisClick }) {
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
   const gizmoRef = useRef();
+  
+  // Drag state
+  const isDragging = useRef(false);
+  const previousMouse = useRef({ x: 0, y: 0 });
 
   useFrame(() => {
     if (gizmoRef.current) {
-      // Synchronize gizmo rotation to the main camera's rotation
-      // The gizmo container rotates inversely to the camera so that 
-      // looking around makes the gizmo rotate correspondingly.
       gizmoRef.current.quaternion.copy(camera.quaternion).invert();
     }
   });
 
+  const handlePointerDown = (e) => {
+    e.stopPropagation();
+    isDragging.current = true;
+    previousMouse.current = { x: e.clientX, y: e.clientY };
+    gl.domElement.style.cursor = 'grabbing';
+    e.target.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e) => {
+    if (!isDragging.current) return;
+    e.stopPropagation();
+
+    const deltaX = e.clientX - previousMouse.current.x;
+    const deltaY = e.clientY - previousMouse.current.y;
+    previousMouse.current = { x: e.clientX, y: e.clientY };
+
+    // Orbit the main camera
+    // Convert current camera position to spherical coordinates
+    const distance = camera.position.length();
+    const spherical = new THREE.Spherical().setFromVector3(camera.position);
+
+    // Apply delta (adjust sensitivity as needed)
+    spherical.theta -= deltaX * 0.01;
+    spherical.phi -= deltaY * 0.01;
+
+    // Clamp phi to avoid flipping
+    spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi));
+
+    // Convert back to vector and update camera
+    camera.position.setFromSpherical(spherical);
+    camera.lookAt(0, 0, 0); // Assuming origin target for now
+  };
+
+  const handlePointerUp = (e) => {
+    if (isDragging.current) {
+      isDragging.current = false;
+      gl.domElement.style.cursor = 'default';
+      e.target.releasePointerCapture(e.pointerId);
+    }
+  };
+
   return (
     <group ref={gizmoRef}>
+      {/* Semi-transparent background circle that also acts as hit area */}
+      <mesh 
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerOut={handlePointerUp}
+      >
+        <sphereGeometry args={[1.5, 32, 32]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.15} depthTest={false} />
+      </mesh>
+
       {/* Center dot */}
       <mesh>
         <sphereGeometry args={[0.15, 16, 16]} />
@@ -79,28 +133,29 @@ function GizmoContent({ onAxisClick }) {
   );
 }
 
-export default function NavigationGizmo() {
-  const { camera } = useThree();
+function GizmoContainer() {
+  const { viewport } = useThree();
   const targetQuaternion = useRef(new THREE.Quaternion());
   const targetPosition = useRef(new THREE.Vector3());
   const isAnimating = useRef(false);
+  const { camera } = useThree(); // This is the Hud camera, we need the main camera for animating
+
+  // Wait, the main camera is passed differently or we can just use the store camera
+  // Let's get the main camera from the store!
+  const mainCamera = useStore(state => state.camera);
 
   const handleAxisClick = (direction) => {
-    // Preserve distance from origin (assuming target is origin)
-    const distance = camera.position.length();
+    if (!mainCamera) return;
+    const distance = mainCamera.position.length();
     
-    // Calculate new position
     targetPosition.current.set(
       direction[0] * distance,
       direction[1] * distance,
       direction[2] * distance
     );
     
-    // Calculate new rotation to look at origin
-    const dummyCamera = camera.clone();
+    const dummyCamera = mainCamera.clone();
     dummyCamera.position.copy(targetPosition.current);
-    // Determine the 'up' vector based on the clicked axis
-    // If clicking Y or -Y, we need a different up vector (e.g., Z) to avoid gimbal issues
     if (Math.abs(direction[1]) > 0.9) {
       dummyCamera.up.set(0, 0, -Math.sign(direction[1]));
     } else {
@@ -113,30 +168,33 @@ export default function NavigationGizmo() {
   };
 
   useFrame((state, delta) => {
-    if (isAnimating.current) {
-      // Smoothly slerp camera rotation and lerp position
-      camera.quaternion.slerp(targetQuaternion.current, 10 * delta);
-      camera.position.lerp(targetPosition.current, 10 * delta);
+    if (isAnimating.current && mainCamera) {
+      mainCamera.quaternion.slerp(targetQuaternion.current, 10 * delta);
+      mainCamera.position.lerp(targetPosition.current, 10 * delta);
       
-      // If we are close enough, stop animating
-      if (camera.quaternion.angleTo(targetQuaternion.current) < 0.01 && 
-          camera.position.distanceTo(targetPosition.current) < 0.05) {
-        // Snap to exact values to prevent drift
-        camera.quaternion.copy(targetQuaternion.current);
-        camera.position.copy(targetPosition.current);
+      if (mainCamera.quaternion.angleTo(targetQuaternion.current) < 0.01 && 
+          mainCamera.position.distanceTo(targetPosition.current) < 0.05) {
+        mainCamera.quaternion.copy(targetQuaternion.current);
+        mainCamera.position.copy(targetPosition.current);
         isAnimating.current = false;
       }
     }
   });
 
+  // Top right corner using viewport dimensions
+  return (
+    <group position={[viewport.width / 2 - 1.5, viewport.height / 2 - 1.5, 0]}>
+      <ambientLight intensity={1} />
+      <GizmoContent onAxisClick={handleAxisClick} />
+    </group>
+  );
+}
+
+export default function NavigationGizmo() {
   return (
     <Hud renderPriority={1}>
       <OrthographicCamera makeDefault position={[0, 0, 5]} zoom={40} />
-      {/* Move it to top right, with enough padding to clear the top menu and right edge */}
-      <group position={[window.innerWidth / 80 - 2.5, window.innerHeight / 80 - 3, 0]}>
-        <ambientLight intensity={1} />
-        <GizmoContent onAxisClick={handleAxisClick} />
-      </group>
+      <GizmoContainer />
     </Hud>
   );
 }

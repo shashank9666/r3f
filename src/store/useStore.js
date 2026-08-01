@@ -51,7 +51,7 @@ export const AXES_SETTINGS = {
 export const useStore = create((set) => ({
   viewport: {
     camera: {
-      position: [12, 8, 12],
+      position: [12, 9, 12],
       fov: 45,
     },
     lighting: {
@@ -66,29 +66,35 @@ export const useStore = create((set) => ({
   },
 
   // Example functions to update the store if needed later
-  toggleGrid: () => set((state) => ({ 
-    viewport: { ...state.viewport, showGrid: !state.viewport.showGrid } 
+  toggleGrid: () => set((state) => ({
+    viewport: { ...state.viewport, showGrid: !state.viewport.showGrid }
   })),
-  
-  toggleCube: () => set((state) => ({ 
-    viewport: { ...state.viewport, showCube: !state.viewport.showCube } 
+
+  toggleCube: () => set((state) => ({
+    viewport: { ...state.viewport, showCube: !state.viewport.showCube }
   })),
-  
+
   showSplash: true,
   setShowSplash: (val) => set({ showSplash: val }),
-  
+
   scene: null,
   setScene: (scene) => set({ scene }),
+
+  camera: null,
+  setCamera: (camera) => set({ camera }),
+
+  controls: null,
+  setControls: (controls) => set({ controls }),
 
   // Navigation and View states
   viewMode: 'perspective',
   setViewMode: (mode) => set({ viewMode: mode }),
-  
+
   navigationMode: 'orbit',
   setNavigationMode: (mode) => set({ navigationMode: mode }),
 
   // --- Interaction Engine State ---
-  
+
   // Scene Graph
   objects: [
     { id: 'default-cube', type: 'cube', position: [0, 1, 0], rotation: [0, 0, 0], scale: [1, 1, 1], color: '#8c8c8c' }
@@ -102,7 +108,7 @@ export const useStore = create((set) => ({
   selectedIds: [],
   activeId: null,
   setSelectedIds: (ids) => set({ selectedIds: ids, activeId: ids.length > 0 ? ids[ids.length - 1] : null }),
-  
+
   // Modal Transform State Machine
   transformState: {
     mode: 'idle', // 'idle' | 'translate' | 'rotate' | 'scale'

@@ -3,18 +3,19 @@
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Grid, Edges } from "@react-three/drei";
 import { useStore, CANVAS_SETTINGS, GRID_SETTINGS, FOG_SETTINGS, AXES_SETTINGS } from "../../store/useStore";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import NavigationToolbar from "./NavigationToolbar/NavigationToolbar";
 import NavigationGizmo from "./NavigationGizmo/NavigationGizmo";
 
 function SceneRegister() {
-  const { scene } = useThree();
-  const setScene = useStore((state) => state.setScene);
-
+  const { scene, camera } = useThree();
+  const { setScene, setCamera } = useStore();
+  
   useEffect(() => {
     setScene(scene);
-  }, [scene, setScene]);
-
+    setCamera(camera);
+  }, [scene, camera, setScene, setCamera]);
+  
   return null;
 }
 
@@ -24,6 +25,14 @@ export default function Viewport() {
     showGrid,
     showCube
   } = useStore((state) => state.viewport);
+  const { setControls } = useStore();
+  const controlsRef = useRef();
+
+  useEffect(() => {
+    if (controlsRef.current) {
+      setControls(controlsRef.current);
+    }
+  }, [setControls]);
 
   return (
     <div className="relative w-full h-screen bg-[#282828] select-none">
@@ -34,7 +43,7 @@ export default function Viewport() {
         <color attach="background" args={["#303030"]} />
         <fog attach="fog" args={[FOG_SETTINGS.color, FOG_SETTINGS.near, FOG_SETTINGS.far]} />
 
-        <OrbitControls makeDefault />
+        <OrbitControls ref={controlsRef} makeDefault />
 
         {/* Basic lighting */}
         <ambientLight intensity={lighting.ambientIntensity} />
@@ -73,10 +82,17 @@ export default function Viewport() {
 
         {/* Dummy Light Wireframe */}
         <group position={[3, 6, -2]}>
+          {/* Horizontal Ring */}
           <mesh rotation={[Math.PI / 2, 0, 0]}>
             <ringGeometry args={[0.95, 1, 32]} />
             <meshBasicMaterial color="#000000" side={2} />
           </mesh>
+          {/* Vertical Ring */}
+          <mesh>
+            <ringGeometry args={[0.95, 1, 32]} />
+            <meshBasicMaterial color="#000000" side={2} />
+          </mesh>
+          {/* Pole connecting to grid */}
           <mesh position={[0, -3, 0]}>
             <cylinderGeometry args={[0.01, 0.01, 6]} />
             <meshBasicMaterial color="#000000" />
