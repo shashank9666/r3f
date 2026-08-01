@@ -25,7 +25,7 @@ export default function Viewport() {
     showGrid,
     showCube
   } = useStore((state) => state.viewport);
-  const { setControls, projection, isWalking, movementSpeed } = useStore();
+  const { setControls, projection, isWalking, movementSpeed, isCameraView } = useStore();
   const controlsRef = useRef();
 
   useEffect(() => {
@@ -35,8 +35,23 @@ export default function Viewport() {
   }, [setControls, projection, isWalking]);
 
   return (
-    <div className="relative w-full h-screen bg-[#282828] select-none">
+    <div className="relative w-full h-screen bg-[#282828] select-none overflow-hidden">
       <NavigationToolbar />
+      
+      {/* Camera View Overlay */}
+      {isCameraView && (
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
+          <div 
+            className="border-2 border-dashed border-[#ffffff66] rounded-[1px]"
+            style={{
+              width: '70%', 
+              height: '70%', 
+              boxShadow: '0 0 0 9999px rgba(0,0,0,0.6)'
+            }}
+          ></div>
+        </div>
+      )}
+      
       <Canvas {...CANVAS_SETTINGS} camera={undefined}>
         {projection === 'orthographic' ? (
           <OrthographicCamera makeDefault position={[12, 9, 12]} zoom={40} near={0.1} far={1000} />
@@ -77,18 +92,20 @@ export default function Viewport() {
         )}
 
         {/* Dummy Camera Wireframe - Yellow */}
-        <group position={[-6, 3, 6]} rotation={[0.0, -0.8, 0]}>
-          {/* Pyramid body */}
-          <mesh rotation={[Math.PI / 2, Math.PI / 4, 0]}>
-            <coneGeometry args={[1, 2, 4]} />
-            <meshBasicMaterial color="#e5cc22" wireframe />
-          </mesh>
-          {/* Top indicator triangle */}
-          <mesh position={[0, 1.2, -1]} rotation={[0, 0, 0]}>
-            <coneGeometry args={[0.5, 0.8, 3]} />
-            <meshBasicMaterial color="#e5cc22" wireframe />
-          </mesh>
-        </group>
+        {!isCameraView && (
+          <group position={[-6, 3, 6]} rotation={[0.0, -0.8, 0]}>
+            {/* Pyramid body */}
+            <mesh rotation={[Math.PI / 2, Math.PI / 4, 0]}>
+              <coneGeometry args={[1, 2, 4]} />
+              <meshBasicMaterial color="#e5cc22" wireframe />
+            </mesh>
+            {/* Top indicator triangle */}
+            <mesh position={[0, 1.2, -1]} rotation={[0, 0, 0]}>
+              <coneGeometry args={[0.5, 0.8, 3]} />
+              <meshBasicMaterial color="#e5cc22" wireframe />
+            </mesh>
+          </group>
+        )}
 
         {/* Dummy Light Wireframe */}
         <group position={[3, 6, -2]}>

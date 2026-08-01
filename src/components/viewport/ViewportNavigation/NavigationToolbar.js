@@ -5,13 +5,13 @@ import { ZoomIn, Hand, Video, Grid3X3 } from 'lucide-react';
 import ToolbarButton from './ToolbarButton';
 import { useZoomTool } from './ZoomTool';
 import { usePanTool } from './PanTool';
-import { useWalkNavigation } from './WalkNavigation';
+import { useCameraViewToggle } from './CameraViewToggle';
 import { useProjectionToggle } from './ProjectionToggle';
 
 export default function NavigationToolbar() {
   const { startZoomDrag, stepZoom } = useZoomTool();
   const { startPanDrag } = usePanTool();
-  const { toggleWalk, isWalking } = useWalkNavigation();
+  const { toggleCameraView, isCameraView } = useCameraViewToggle();
   const { toggleProjection, projection } = useProjectionToggle();
 
   return (
@@ -24,9 +24,9 @@ export default function NavigationToolbar() {
       </div>
       <ToolbarButton 
         icon={Video} 
-        title="Toggle Camera Walk" 
-        onClick={toggleWalk} 
-        isActive={isWalking}
+        title="Toggle Camera View (Numpad 0)" 
+        onClick={toggleCameraView} 
+        isActive={isCameraView}
       />
       <ToolbarButton 
         icon={Grid3X3} 

@@ -61,11 +61,16 @@ function GizmoAxisNode({ axis, onAxisClick }) {
   );
 }
 
+import { useState } from 'react';
+import { Html } from '@react-three/drei';
+
 function GizmoContent({ onAxisClick }) {
   const { gl } = useThree();
   const gizmoRef = useRef();
   const mainCamera = useStore(state => state.camera);
   const controls = useStore(state => state.controls);
+  
+  const [isHovered, setIsHovered] = useState(false);
   
   // Drag state
   const isDragging = useRef(false);
@@ -124,14 +129,28 @@ function GizmoContent({ onAxisClick }) {
       {/* Semi-transparent background circle that also acts as hit area */}
       {/* This sits outside gizmoRef so it doesn't rotate, ensuring a perfect 2D circle background */}
       <mesh 
+        onPointerOver={() => setIsHovered(true)}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerOut={handlePointerUp}
+        onPointerOut={(e) => {
+          setIsHovered(false);
+          handlePointerUp(e);
+        }}
       >
         <circleGeometry args={[1.6, 64]} />
         <meshBasicMaterial color="#ffffff" transparent opacity={0.1} depthTest={false} />
       </mesh>
+
+      {isHovered && !isDragging.current && (
+        <Html position={[-2, -2, 0]} style={{ pointerEvents: 'none', transform: 'translate3d(-100%, 0, 0)' }}>
+          <div className="bg-[#1b1b1b] border border-[#333333] text-[#cccccc] text-[13px] px-3 py-2 rounded shadow-xl whitespace-nowrap font-sans flex flex-col gap-1 tracking-wide z-50">
+            <div>Click: Use a preset viewpoint</div>
+            <div className="text-[#999999]">Shortcut: Numpad 1</div>
+            <div>Drag: Rotate the view</div>
+          </div>
+        </Html>
+      )}
 
       <group ref={gizmoRef}>
         {/* Center dot */}
