@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability */
 "use client";
 
 import React, { useRef, useMemo } from 'react';
@@ -16,6 +17,49 @@ const AXES = [
   { axis: 'z', label: 'Z', direction: [0, 0, 1], color: '#4488ff', isNegative: false },
   { axis: '-z', label: '', direction: [0, 0, -1], color: '#002299', isNegative: true },
 ];
+
+function GizmoAxisNode({ axis, onAxisClick }) {
+  const geometry = useMemo(() => {
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute([
+      0, 0, 0, 
+      axis.direction[0] * 0.8, axis.direction[1] * 0.8, axis.direction[2] * 0.8
+    ], 3));
+    return geom;
+  }, [axis.direction]);
+
+  return (
+    <group>
+      {/* Connecting line */}
+      <line>
+        <bufferGeometry attach="geometry" {...geometry} />
+        <lineBasicMaterial attach="material" color={axis.color} depthTest={false} transparent opacity={axis.isNegative ? 0.3 : 0.8} />
+      </line>
+      
+      <Axis 
+        position={[axis.direction[0], axis.direction[1], axis.direction[2]]}
+        color={axis.color}
+        label={axis.label}
+        isNegative={axis.isNegative}
+        onClick={() => onAxisClick(axis.direction)}
+      />
+      
+      {/* Label (only for positive axes) */}
+      {!axis.isNegative && (
+        <Text
+          position={[axis.direction[0] * 1.3, axis.direction[1] * 1.3, axis.direction[2] * 1.3]}
+          fontSize={0.3}
+          color="#ffffff"
+          anchorX="center"
+          anchorY="middle"
+          depthTest={false}
+        >
+          {axis.label}
+        </Text>
+      )}
+    </group>
+  );
+}
 
 function GizmoContent({ onAxisClick }) {
   const { camera, gl } = useThree();
@@ -73,62 +117,30 @@ function GizmoContent({ onAxisClick }) {
   };
 
   return (
-    <group ref={gizmoRef}>
+    <group>
       {/* Semi-transparent background circle that also acts as hit area */}
+      {/* This sits outside gizmoRef so it doesn't rotate, ensuring a perfect 2D circle background */}
       <mesh 
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerOut={handlePointerUp}
       >
-        <sphereGeometry args={[1.5, 32, 32]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.15} depthTest={false} />
+        <circleGeometry args={[1.6, 64]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.1} depthTest={false} />
       </mesh>
 
-      {/* Center dot */}
-      <mesh>
-        <sphereGeometry args={[0.15, 16, 16]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.5} depthTest={false} />
-      </mesh>
+      <group ref={gizmoRef}>
+        {/* Center dot */}
+        <mesh>
+          <sphereGeometry args={[0.15, 16, 16]} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={0.5} depthTest={false} />
+        </mesh>
 
-      {AXES.map((axis, i) => (
-        <group key={i}>
-          {/* Connecting line */}
-          <line>
-            <bufferGeometry attach="geometry" {...useMemo(() => {
-              const geometry = new THREE.BufferGeometry();
-              geometry.setAttribute('position', new THREE.Float32BufferAttribute([
-                0, 0, 0, 
-                axis.direction[0] * 0.8, axis.direction[1] * 0.8, axis.direction[2] * 0.8
-              ], 3));
-              return geometry;
-            }, [axis.direction])} />
-            <lineBasicMaterial attach="material" color={axis.color} depthTest={false} transparent opacity={axis.isNegative ? 0.3 : 0.8} />
-          </line>
-          
-          <Axis 
-            position={[axis.direction[0], axis.direction[1], axis.direction[2]]}
-            color={axis.color}
-            label={axis.label}
-            isNegative={axis.isNegative}
-            onClick={() => onAxisClick(axis.direction)}
-          />
-          
-          {/* Label (only for positive axes) */}
-          {!axis.isNegative && (
-            <Text
-              position={[axis.direction[0] * 1.3, axis.direction[1] * 1.3, axis.direction[2] * 1.3]}
-              fontSize={0.3}
-              color="#ffffff"
-              anchorX="center"
-              anchorY="middle"
-              depthTest={false}
-            >
-              {axis.label}
-            </Text>
-          )}
-        </group>
-      ))}
+        {AXES.map((axis, i) => (
+          <GizmoAxisNode key={i} axis={axis} onAxisClick={onAxisClick} />
+        ))}
+      </group>
     </group>
   );
 }

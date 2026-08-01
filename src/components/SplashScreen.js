@@ -1,4 +1,5 @@
 import Image from "next/image";
+import packageJson from "../../package.json";
 import {
   FilePlus,
   Film,
@@ -46,7 +47,7 @@ export default function SplashScreen() {
 
             {/* Version */}
             <div className="text-white text-sm font-medium drop-shadow-md mt-2">
-              0.1.0
+              {packageJson.version}
             </div>
           </div>
         </div>

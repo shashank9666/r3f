@@ -21,6 +21,7 @@ export const CANVAS_SETTINGS = {
 };
 
 export const GRID_SETTINGS = {
+  args: [500, 500],
   infiniteGrid: true,
   fadeDistance: 100,
   sectionColor: "#5a5a5a",
