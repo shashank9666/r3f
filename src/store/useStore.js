@@ -22,7 +22,7 @@ export const CANVAS_SETTINGS = {
 
 export const GRID_SETTINGS = {
   infiniteGrid: true,
-  fadeDistance: 50,
+  fadeDistance: 100,
   sectionColor: "#5a5a5a",
   cellColor: "#3b3b3b",
   cellSize: 1,
@@ -32,8 +32,8 @@ export const GRID_SETTINGS = {
 
 export const FOG_SETTINGS = {
   color: "#303030", // Matches background
-  near: 15,
-  far: 50
+  near: 30,
+  far: 100
 };
 
 export const AXES_SETTINGS = {
@@ -79,4 +79,10 @@ export const useStore = create((set) => ({
   
   scene: null,
   setScene: (scene) => set({ scene }),
+  // Navigation and View states
+  viewMode: 'perspective', // 'perspective' | 'orthographic'
+  setViewMode: (mode) => set({ viewMode: mode }),
+  
+  navigationMode: 'orbit', // 'orbit' | 'fly' | 'pan'
+  setNavigationMode: (mode) => set({ navigationMode: mode }),
 }));

@@ -4,39 +4,43 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Grid, Edges } from "@react-three/drei";
 import { useStore, CANVAS_SETTINGS, GRID_SETTINGS, FOG_SETTINGS, AXES_SETTINGS } from "../../store/useStore";
 import { useEffect } from "react";
+import NavigationToolbar from "./NavigationToolbar/NavigationToolbar";
+import NavigationGizmo from "./NavigationGizmo/NavigationGizmo";
 
 function SceneRegister() {
   const { scene } = useThree();
   const setScene = useStore((state) => state.setScene);
-  
+
   useEffect(() => {
     setScene(scene);
   }, [scene, setScene]);
-  
+
   return null;
 }
 
 export default function Viewport() {
-  const { 
-    lighting, 
-    showGrid, 
-    showCube 
+  const {
+    lighting,
+    showGrid,
+    showCube
   } = useStore((state) => state.viewport);
 
   return (
-    <div className="w-full h-screen bg-[#282828] select-none">
+    <div className="relative w-full h-screen bg-[#282828] select-none">
+      <NavigationToolbar />
       <Canvas {...CANVAS_SETTINGS}>
+        <NavigationGizmo />
         <SceneRegister />
         <color attach="background" args={["#303030"]} />
         <fog attach="fog" args={[FOG_SETTINGS.color, FOG_SETTINGS.near, FOG_SETTINGS.far]} />
-        
+
         <OrbitControls makeDefault />
 
         {/* Basic lighting */}
         <ambientLight intensity={lighting.ambientIntensity} />
         <directionalLight position={lighting.directionalPosition} intensity={lighting.directionalIntensity} />
         <directionalLight position={lighting.secondaryDirectionalPosition} intensity={lighting.secondaryDirectionalIntensity} />
-        
+
         {/* Blender-like Grid */}
         {showGrid && (
           <group>
@@ -54,7 +58,7 @@ export default function Viewport() {
         )}
 
         {/* Dummy Camera Wireframe - Yellow */}
-        <group position={[-6, 3, 6]} rotation={[0.2, -0.8, 0]}>
+        <group position={[-6, 3, 6]} rotation={[0.0, -0.8, 0]}>
           {/* Pyramid body */}
           <mesh rotation={[Math.PI / 2, Math.PI / 4, 0]}>
             <coneGeometry args={[1, 2, 4]} />
@@ -90,15 +94,7 @@ export default function Viewport() {
             <ringGeometry args={[0.25, 0.4, 4, 1]} />
             <meshBasicMaterial color="#ff0000" side={2} depthTest={false} />
           </mesh>
-          {/* Crosshair lines */}
-          <mesh position={[0, 0.4, 0]}>
-            <cylinderGeometry args={[0.01, 0.01, 0.4]} />
-            <meshBasicMaterial color="#000000" depthTest={false} />
-          </mesh>
-          <mesh position={[0, -0.4, 0]}>
-            <cylinderGeometry args={[0.01, 0.01, 0.4]} />
-            <meshBasicMaterial color="#000000" depthTest={false} />
-          </mesh>
+          {/* Crosshair lines (horizontal only to avoid sticking under cube) */}
           <mesh position={[0.4, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
             <cylinderGeometry args={[0.01, 0.01, 0.4]} />
             <meshBasicMaterial color="#000000" depthTest={false} />
