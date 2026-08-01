@@ -1,46 +1,49 @@
 import Image from "next/image";
-import { 
-  FilePlus, 
-  Film, 
-  Hammer, 
-  BookOpen, 
-  Wand2, 
-  Search, 
-  FolderOpen, 
-  History 
+import {
+  FilePlus,
+  Film,
+  Hammer,
+  BookOpen,
+  Wand2,
+  Search,
+  FolderOpen,
+  History
 } from "lucide-react";
+import { useStore } from "../store/useStore";
 
 export default function SplashScreen() {
+  const setShowSplash = useStore((state) => state.setShowSplash);
+
   return (
-    <div className="flex items-center justify-center min-h-screen w-full bg-black/50 font-sans select-none backdrop-blur-xl">
+    <div className="flex items-center justify-center min-h-screen w-full bg-black/20 font-sans select-none backdrop-blur-sm">
       {/* Splash Screen Container */}
       <div className="w-[600px] rounded-lg overflow-hidden shadow-2xl flex flex-col border border-neutral-800">
-        
+
         {/* Top Image Section */}
         <div className="relative h-[300px] w-full bg-black">
-          <Image 
-            src="/splash_background.png" 
-            alt="Splash Background" 
-            fill 
+          <Image
+            src="/splash_background.png"
+            alt="Splash Background"
+            fill
             className="object-cover opacity-90"
             priority
           />
-          
+
           {/* Top Header overlay */}
           <div className="absolute top-0 left-0 w-full p-5 flex justify-between items-start bg-gradient-to-b from-black/70 to-transparent">
             {/* Logo and Name */}
             <div className="flex items-center gap-3">
               <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-white/20 shadow-lg">
-                <Image 
-                  src="/r3f_logo.png" 
-                  alt="r3f Logo" 
-                  fill 
+                <Image
+                  src="/r3f_logo.png"
+                  alt="r3f Logo"
+                  fill
                   className="object-cover"
                 />
               </div>
               <h1 className="text-white text-[32px] font-semibold tracking-tight drop-shadow-md">r3f</h1>
             </div>
-            
+
             {/* Version */}
             <div className="text-white text-sm font-medium drop-shadow-md mt-2">
               0.1.0
@@ -50,14 +53,17 @@ export default function SplashScreen() {
 
         {/* Bottom Menu Section */}
         <div className="bg-[#1b1b1b] text-[#cccccc] p-6 flex flex-col gap-6 text-[13.5px]">
-          
+
           {/* Main Content Columns */}
           <div className="flex justify-between">
             {/* New File Column */}
             <div className="flex-1">
               <h3 className="text-[#888888] mb-2 font-medium">New File</h3>
               <ul className="flex flex-col gap-[2px]">
-                <li className="flex items-center gap-3 py-1.5 px-2 -mx-2 hover:bg-[#2d4b73] hover:text-white rounded cursor-pointer transition-colors duration-100">
+                <li 
+                  onClick={() => setShowSplash(false)}
+                  className="flex items-center gap-3 py-1.5 px-2 -mx-2 hover:bg-[#2d4b73] hover:text-white rounded cursor-pointer transition-colors duration-100"
+                >
                   <FilePlus className="w-[18px] h-[18px] opacity-80" /> New
                 </li>
                 <li className="flex items-center gap-3 py-1.5 px-2 -mx-2 hover:bg-[#2d4b73] hover:text-white rounded cursor-pointer transition-colors duration-100">
@@ -82,7 +88,7 @@ export default function SplashScreen() {
 
           {/* Bottom Actions */}
           <div className="flex justify-center items-center py-2 text-center text-[#777777] italic tracking-wide">
-            made for developers, by developers
+            " made for developers, by developers "
           </div>
 
         </div>
