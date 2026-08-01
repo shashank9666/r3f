@@ -86,18 +86,44 @@ export default function NavigationGizmo() {
   const isAnimating = useRef(false);
 
   const handleAxisClick = (direction) => {
-    // In a full implementation, this calculates the new camera position based on orbit target.
-    // For now, we will simply log it or do a basic jump to demonstrate.
-    console.log("Clicked axis direction:", direction);
+    // Preserve distance from origin (assuming target is origin)
+    const distance = camera.position.length();
+    
+    // Calculate new position
+    targetPosition.current.set(
+      direction[0] * distance,
+      direction[1] * distance,
+      direction[2] * distance
+    );
+    
+    // Calculate new rotation to look at origin
+    const dummyCamera = camera.clone();
+    dummyCamera.position.copy(targetPosition.current);
+    // Determine the 'up' vector based on the clicked axis
+    // If clicking Y or -Y, we need a different up vector (e.g., Z) to avoid gimbal issues
+    if (Math.abs(direction[1]) > 0.9) {
+      dummyCamera.up.set(0, 0, -Math.sign(direction[1]));
+    } else {
+      dummyCamera.up.set(0, 1, 0);
+    }
+    dummyCamera.lookAt(0, 0, 0);
+    targetQuaternion.current.copy(dummyCamera.quaternion);
+    
+    isAnimating.current = true;
   };
 
   useFrame((state, delta) => {
     if (isAnimating.current) {
       // Smoothly slerp camera rotation and lerp position
-      camera.quaternion.slerp(targetQuaternion.current, 5 * delta);
-      camera.position.lerp(targetPosition.current, 5 * delta);
+      camera.quaternion.slerp(targetQuaternion.current, 10 * delta);
+      camera.position.lerp(targetPosition.current, 10 * delta);
+      
       // If we are close enough, stop animating
-      if (camera.quaternion.angleTo(targetQuaternion.current) < 0.01) {
+      if (camera.quaternion.angleTo(targetQuaternion.current) < 0.01 && 
+          camera.position.distanceTo(targetPosition.current) < 0.05) {
+        // Snap to exact values to prevent drift
+        camera.quaternion.copy(targetQuaternion.current);
+        camera.position.copy(targetPosition.current);
         isAnimating.current = false;
       }
     }
@@ -106,8 +132,8 @@ export default function NavigationGizmo() {
   return (
     <Hud renderPriority={1}>
       <OrthographicCamera makeDefault position={[0, 0, 5]} zoom={40} />
-      {/* Move it to top right. In ortho space, units are pixels/zoom. We will position it at top right corner */}
-      <group position={[window.innerWidth / 80 - 1.5, window.innerHeight / 80 - 1.5, 0]}>
+      {/* Move it to top right, with enough padding to clear the top menu and right edge */}
+      <group position={[window.innerWidth / 80 - 2.5, window.innerHeight / 80 - 3, 0]}>
         <ambientLight intensity={1} />
         <GizmoContent onAxisClick={handleAxisClick} />
       </group>

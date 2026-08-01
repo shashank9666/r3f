@@ -27,7 +27,7 @@ export default function NavigationToolbar() {
   };
 
   return (
-    <div className="absolute right-4 top-20 flex flex-col items-center z-40 select-none">
+    <div className="absolute right-4 top-40 flex flex-col items-center z-40 select-none">
       <ToolbarButton 
         icon={ZoomIn} 
         title="Zoom in/out" 

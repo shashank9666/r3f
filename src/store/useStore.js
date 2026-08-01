@@ -79,10 +79,60 @@ export const useStore = create((set) => ({
   
   scene: null,
   setScene: (scene) => set({ scene }),
+
   // Navigation and View states
-  viewMode: 'perspective', // 'perspective' | 'orthographic'
+  viewMode: 'perspective',
   setViewMode: (mode) => set({ viewMode: mode }),
   
-  navigationMode: 'orbit', // 'orbit' | 'fly' | 'pan'
+  navigationMode: 'orbit',
   setNavigationMode: (mode) => set({ navigationMode: mode }),
+
+  // --- Interaction Engine State ---
+  
+  // Scene Graph
+  objects: [
+    { id: 'default-cube', type: 'cube', position: [0, 1, 0], rotation: [0, 0, 0], scale: [1, 1, 1], color: '#8c8c8c' }
+  ],
+  setObjects: (objects) => set({ objects }),
+  updateObject: (id, updates) => set((state) => ({
+    objects: state.objects.map(obj => obj.id === id ? { ...obj, ...updates } : obj)
+  })),
+
+  // Selection
+  selectedIds: [],
+  activeId: null,
+  setSelectedIds: (ids) => set({ selectedIds: ids, activeId: ids.length > 0 ? ids[ids.length - 1] : null }),
+  
+  // Modal Transform State Machine
+  transformState: {
+    mode: 'idle', // 'idle' | 'translate' | 'rotate' | 'scale'
+    axisConstraint: null, // null | 'X' | 'Y' | 'Z' | 'XY' | 'YZ' | 'XZ'
+    numericBuffer: '',
+    originalTransforms: {} // stores transforms when action starts for undo/cancel
+  },
+  setTransformState: (updates) => set((state) => ({
+    transformState: { ...state.transformState, ...updates }
+  })),
+
+  // History System (Undo/Redo)
+  undoStack: [],
+  redoStack: [],
+  pushHistory: (action) => set((state) => ({
+    undoStack: [...state.undoStack, action],
+    redoStack: [] // clearing redo stack on new action
+  })),
+  undo: () => set((state) => {
+    if (state.undoStack.length === 0) return state;
+    const action = state.undoStack[state.undoStack.length - 1];
+    const newUndoStack = state.undoStack.slice(0, -1);
+    // Apply inverse action (handled externally or simplified here)
+    // For now, we return the pop, and the caller handles the revert.
+    return { undoStack: newUndoStack, redoStack: [...state.redoStack, action] };
+  }),
+  redo: () => set((state) => {
+    if (state.redoStack.length === 0) return state;
+    const action = state.redoStack[state.redoStack.length - 1];
+    const newRedoStack = state.redoStack.slice(0, -1);
+    return { redoStack: newRedoStack, undoStack: [...state.undoStack, action] };
+  })
 }));
