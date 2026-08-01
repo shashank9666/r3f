@@ -1,6 +1,5 @@
 "use client";
 
-import React from 'react';
 import React, { useRef } from 'react';
 import { ZoomIn, Hand, Video, Grid3X3 } from 'lucide-react';
 import ToolbarButton from './ToolbarButton';

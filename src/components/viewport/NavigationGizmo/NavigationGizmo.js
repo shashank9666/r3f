@@ -134,14 +134,12 @@ function GizmoContent({ onAxisClick }) {
 }
 
 function GizmoContainer() {
-  const { viewport } = useThree();
+  const { size, camera: hudCamera } = useThree();
   const targetQuaternion = useRef(new THREE.Quaternion());
   const targetPosition = useRef(new THREE.Vector3());
   const isAnimating = useRef(false);
-  const { camera } = useThree(); // This is the Hud camera, we need the main camera for animating
 
-  // Wait, the main camera is passed differently or we can just use the store camera
-  // Let's get the main camera from the store!
+  // We need the main camera for animating
   const mainCamera = useStore(state => state.camera);
 
   const handleAxisClick = (direction) => {
@@ -181,9 +179,12 @@ function GizmoContainer() {
     }
   });
 
-  // Top right corner using viewport dimensions
+  // Zoom is 40. Top right corner:
+  const cx = size.width / 80 - 1.5;
+  const cy = size.height / 80 - 2; // Offset for top menu
+
   return (
-    <group position={[viewport.width / 2 - 1.5, viewport.height / 2 - 1.5, 0]}>
+    <group position={[cx, cy, 0]}>
       <ambientLight intensity={1} />
       <GizmoContent onAxisClick={handleAxisClick} />
     </group>

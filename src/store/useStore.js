@@ -8,7 +8,7 @@ export const CANVAS_SETTINGS = {
   frameloop: "always",
   dpr: [1, 2],
   camera: {
-    position: [12, 8, 12],
+    position: [12, 9, 12],
     fov: 45,
     near: 0.1,
     far: 1000,
