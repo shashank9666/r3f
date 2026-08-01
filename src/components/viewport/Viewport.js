@@ -2,7 +2,7 @@
 
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Grid, Edges } from "@react-three/drei";
-import { useStore, CANVAS_SETTINGS } from "../../store/useStore";
+import { useStore, CANVAS_SETTINGS, GRID_SETTINGS, FOG_SETTINGS, AXES_SETTINGS } from "../../store/useStore";
 import { useEffect } from "react";
 
 function SceneRegister() {
@@ -28,6 +28,7 @@ export default function Viewport() {
       <Canvas {...CANVAS_SETTINGS}>
         <SceneRegister />
         <color attach="background" args={["#303030"]} />
+        <fog attach="fog" args={[FOG_SETTINGS.color, FOG_SETTINGS.near, FOG_SETTINGS.far]} />
         
         <OrbitControls makeDefault />
 
@@ -39,47 +40,41 @@ export default function Viewport() {
         {/* Blender-like Grid */}
         {showGrid && (
           <group>
-            <Grid 
-              infiniteGrid
-              fadeDistance={50}
-              sectionColor="#5a5a5a"
-              cellColor="#3b3b3b"
-              cellSize={1}
-              sectionSize={10}
-              position={[0, 0, 0]}
-            />
+            <Grid {...GRID_SETTINGS} />
             {/* Infinite colored axes lines on the floor (X and Z) */}
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.001, 0]}>
-              <planeGeometry args={[100, 0.04]} />
-              <meshBasicMaterial color="#ff4444" transparent opacity={0.6} depthWrite={false} />
+              <planeGeometry args={[AXES_SETTINGS.length, AXES_SETTINGS.thickness]} />
+              <meshBasicMaterial color={AXES_SETTINGS.colors.x} transparent opacity={AXES_SETTINGS.opacity} depthWrite={false} fog={true} />
             </mesh>
             <mesh rotation={[-Math.PI / 2, 0, Math.PI / 2]} position={[0, 0.001, 0]}>
-              <planeGeometry args={[100, 0.04]} />
-              <meshBasicMaterial color="#88ff44" transparent opacity={0.6} depthWrite={false} />
+              <planeGeometry args={[AXES_SETTINGS.length, AXES_SETTINGS.thickness]} />
+              <meshBasicMaterial color={AXES_SETTINGS.colors.z} transparent opacity={AXES_SETTINGS.opacity} depthWrite={false} fog={true} />
             </mesh>
           </group>
         )}
 
         {/* Dummy Camera Wireframe - Yellow */}
-        <group position={[-5, 3, 5]} rotation={[-0.3, -0.6, 0]}>
-          <mesh>
+        <group position={[-6, 3, 6]} rotation={[0.2, -0.8, 0]}>
+          {/* Pyramid body */}
+          <mesh rotation={[Math.PI / 2, Math.PI / 4, 0]}>
             <coneGeometry args={[1, 2, 4]} />
             <meshBasicMaterial color="#e5cc22" wireframe />
           </mesh>
-          <mesh position={[0, 1.2, 0]}>
-            <boxGeometry args={[1.2, 0.5, 1.2]} />
+          {/* Top indicator triangle */}
+          <mesh position={[0, 1.2, -1]} rotation={[0, 0, 0]}>
+            <coneGeometry args={[0.5, 0.8, 3]} />
             <meshBasicMaterial color="#e5cc22" wireframe />
           </mesh>
         </group>
 
-        {/* Dummy Light Wireframe - Black circle */}
+        {/* Dummy Light Wireframe */}
         <group position={[3, 6, -2]}>
           <mesh rotation={[Math.PI / 2, 0, 0]}>
             <ringGeometry args={[0.95, 1, 32]} />
             <meshBasicMaterial color="#000000" side={2} />
           </mesh>
-          <mesh position={[0, -1, 0]}>
-            <cylinderGeometry args={[0.02, 0.02, 2]} />
+          <mesh position={[0, -3, 0]}>
+            <cylinderGeometry args={[0.01, 0.01, 6]} />
             <meshBasicMaterial color="#000000" />
           </mesh>
         </group>

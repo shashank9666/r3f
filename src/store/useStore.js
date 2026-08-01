@@ -8,7 +8,7 @@ export const CANVAS_SETTINGS = {
   frameloop: "always",
   dpr: [1, 2],
   camera: {
-    position: [0, 2, 5],
+    position: [12, 8, 12],
     fov: 45,
     near: 0.1,
     far: 1000,
@@ -19,6 +19,33 @@ export const CANVAS_SETTINGS = {
     powerPreference: "high-performance",
   }
 };
+
+export const GRID_SETTINGS = {
+  infiniteGrid: true,
+  fadeDistance: 50,
+  sectionColor: "#5a5a5a",
+  cellColor: "#3b3b3b",
+  cellSize: 1,
+  sectionSize: 10,
+  position: [0, 0, 0]
+};
+
+export const FOG_SETTINGS = {
+  color: "#303030", // Matches background
+  near: 15,
+  far: 50
+};
+
+export const AXES_SETTINGS = {
+  length: FOG_SETTINGS.far * 2,
+  thickness: 0.04,
+  colors: {
+    x: "#ff4444",
+    z: "#88ff44"
+  },
+  opacity: 0.6
+};
+
 
 // Store constant default values for the viewport
 export const useStore = create((set) => ({
