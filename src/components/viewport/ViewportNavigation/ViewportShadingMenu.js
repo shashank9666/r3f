@@ -16,7 +16,7 @@ export default function ViewportShadingMenu() {
   ];
 
   return (
-    <div className="absolute top-4 right-4 z-50 flex items-center bg-[#282828] rounded-md border border-[#404040] shadow-md p-1 gap-1">
+    <div className="flex items-center bg-[#2d2d2d] rounded overflow-hidden">
       {MODES.map((mode) => {
         const isActive = viewportShading === mode.id;
         return (
@@ -25,8 +25,8 @@ export default function ViewportShadingMenu() {
             onClick={() => setViewportShading(mode.id)}
             title={`Viewport Shading: ${mode.label}`}
             className={`
-              p-1.5 rounded cursor-pointer transition-colors
-              ${isActive ? 'bg-[#4772b3] text-white' : 'text-[#a4a4a4] hover:bg-[#383838] hover:text-white'}
+              p-1.5 cursor-pointer transition-colors flex items-center justify-center
+              ${isActive ? 'bg-[#4772b3] text-white' : 'text-[#a4a4a4] hover:bg-[#404040] hover:text-white'}
             `}
           >
             {mode.icon}

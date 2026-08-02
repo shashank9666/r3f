@@ -2,17 +2,27 @@
 
 import React from 'react';
 import { useStore } from '../../../store/useStore';
-import { Globe } from 'lucide-react';
+import { Globe, RotateCcw } from 'lucide-react';
 
 export default function WorldProperties() {
   const worldSettings = useStore(state => state.worldSettings);
   const updateWorldSettings = useStore(state => state.updateWorldSettings);
+  const resetWorldSettings = useStore(state => state.resetWorldSettings);
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2 mb-2 font-semibold text-[13px] border-b border-[#1d1d1d] pb-2 text-red-400">
-        <Globe size={16} />
-        <span>World Properties</span>
+      <div className="flex items-center justify-between mb-2 border-b border-[#1d1d1d] pb-2">
+        <div className="flex items-center gap-2 font-semibold text-[13px] text-red-400">
+          <Globe size={16} />
+          <span>World Properties</span>
+        </div>
+        <button 
+          onClick={resetWorldSettings}
+          title="Reset to Default"
+          className="p-1 hover:bg-[#383838] text-[#a4a4a4] hover:text-white rounded transition-colors"
+        >
+          <RotateCcw size={14} />
+        </button>
       </div>
 
       <div className="bg-[#303030] rounded border border-[#1d1d1d]">

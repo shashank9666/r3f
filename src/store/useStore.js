@@ -152,6 +152,17 @@ export const useStore = create(
     showGrid: true
   },
   updateWorldSettings: (updates) => set((state) => ({ worldSettings: { ...state.worldSettings, ...updates } })),
+  resetWorldSettings: () => set({ worldSettings: { 
+    backgroundColor: '#303030', 
+    environment: 'none', 
+    fogEnabled: false, 
+    fogColor: '#303030', 
+    fogNear: 10, 
+    fogFar: 100, 
+    ambientIntensity: 0.5, 
+    ambientColor: '#ffffff',
+    showGrid: true
+  }}),
 
   // Render & PostProcessing Settings
   renderSettings: { 
@@ -161,6 +172,12 @@ export const useStore = create(
     antialias: true 
   },
   updateRenderSettings: (updates) => set((state) => ({ renderSettings: { ...state.renderSettings, ...updates } })),
+  resetRenderSettings: () => set({ renderSettings: { 
+    toneMapping: 'ACESFilmic', 
+    exposure: 1.0, 
+    shadows: true, 
+    antialias: true 
+  }}),
 
   movementSpeed: 5,
   setMovementSpeed: (speed) => set({ movementSpeed: speed }),
@@ -435,5 +452,7 @@ export const useStore = create(
     zoomLevel: state.zoomLevel,
     zoomSpeed: state.zoomSpeed,
     movementSpeed: state.movementSpeed,
+    worldSettings: state.worldSettings,
+    renderSettings: state.renderSettings,
   }),
 }));

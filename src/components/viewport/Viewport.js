@@ -63,14 +63,23 @@ export default function Viewport() {
   }, [setControls, projection, isWalking]);
 
   return (
-    <div className="relative w-full h-screen bg-[#282828] select-none overflow-hidden">
-      <NavigationToolbar />
-      <TransformHUD />
-      <ViewportHotkeys />
-      <ViewportShadingMenu />
+    <div className="relative w-full h-full flex flex-col bg-[#282828] select-none overflow-hidden">
       
-      {/* Camera View Overlay */}
-      {isCameraView && (
+      {/* Viewport Header */}
+      <div className="h-[32px] w-full flex-shrink-0 bg-[#303030] flex items-center justify-between px-2 border-b border-[#1d1d1d] z-20 shadow-sm">
+        <div className="flex items-center gap-2 text-[#a4a4a4] text-xs font-semibold px-2">
+          Object Mode
+        </div>
+        <ViewportShadingMenu />
+      </div>
+
+      <div className="flex-1 relative w-full h-full overflow-hidden">
+        <NavigationToolbar />
+        <TransformHUD />
+        <ViewportHotkeys />
+        
+        {/* Camera View Overlay */}
+        {isCameraView && (
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
           <div 
             className="border-2 border-dashed border-[#ffffff66] rounded-[1px]"
@@ -201,6 +210,7 @@ export default function Viewport() {
         {/* Render interactive objects from the store */}
         <SceneObjects />
       </Canvas>
+      </div>
     </div>
   );
 }
