@@ -73,6 +73,21 @@ export default function RenderProperties() {
               className="accent-[#4772b3]"
             />
           </div>
+          {renderSettings.shadows && (
+            <div className="flex items-center justify-between mt-1">
+              <span className="text-[#a4a4a4]">Type</span>
+              <select 
+                className="bg-[#1d1d1d] text-white border border-[#404040] rounded px-2 py-1 outline-none text-xs w-32"
+                value={renderSettings.shadowType}
+                onChange={(e) => updateRenderSettings({ shadowType: e.target.value })}
+              >
+                <option value="Basic">Basic</option>
+                <option value="PCF">PCF</option>
+                <option value="PCFSoft">PCF Soft</option>
+                <option value="VSM">VSM</option>
+              </select>
+            </div>
+          )}
         </div>
       </div>
       
@@ -87,6 +102,19 @@ export default function RenderProperties() {
               onChange={(e) => updateRenderSettings({ antialias: e.target.checked })}
               className="accent-[#4772b3]"
             />
+          </div>
+
+          <div className="flex items-center justify-between mt-1">
+            <span className="text-[#a4a4a4]">Max DPR</span>
+            <select 
+              className="bg-[#1d1d1d] text-white border border-[#404040] rounded px-2 py-1 outline-none text-xs w-24"
+              value={renderSettings.dpr}
+              onChange={(e) => updateRenderSettings({ dpr: parseFloat(e.target.value) })}
+            >
+              <option value={1}>1.0</option>
+              <option value={1.5}>1.5</option>
+              <option value={2}>2.0</option>
+            </select>
           </div>
         </div>
       </div>
