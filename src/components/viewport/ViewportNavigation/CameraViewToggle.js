@@ -13,7 +13,9 @@ export function useCameraViewToggle() {
   const toggleCameraView = () => {
     const mainCamera = useStore.getState().camera;
     const controls = useStore.getState().controls;
-    
+    const objects = useStore.getState().objects;
+    const addToast = useStore.getState().addToast;
+
     if (!mainCamera || !controls) return;
 
     if (isCameraView) {
@@ -27,6 +29,13 @@ export function useCameraViewToggle() {
       setIsCameraView(false);
     } else {
       // Enter Camera View
+      // 1. Find a camera in the scene objects
+      const sceneCamera = objects.find(o => o.category === 'camera');
+      if (!sceneCamera) {
+        addToast("No Camera Found in scene!", "error", 3000);
+        return;
+      }
+
       // Save current state
       setSavedCameraState({
         position: mainCamera.position.clone(),
@@ -34,15 +43,15 @@ export function useCameraViewToggle() {
         target: controls.target.clone()
       });
 
-      // Dummy camera is at [-6, 3, 6] looking at [0, 1, 0] roughly (or looking along its Z)
-      // Let's set the main camera to match the dummy camera exactly
-      const camPos = new THREE.Vector3(-6, 3, 6);
+      // 2. Move mainCamera to match the scene camera's transform
+      const camPos = new THREE.Vector3(...sceneCamera.position);
+      const camRot = new THREE.Euler(...sceneCamera.rotation);
       
       // Let's make it look at the origin/cube
       const targetPos = new THREE.Vector3(0, 1, 0);
 
       mainCamera.position.copy(camPos);
-      mainCamera.lookAt(targetPos);
+      mainCamera.setRotationFromEuler(camRot);
       controls.target.copy(targetPos);
       controls.update();
 

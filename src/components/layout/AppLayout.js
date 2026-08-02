@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Outliner from '../panels/Outliner';
 import PropertiesPanel from '../panels/PropertiesPanel';
+import ToastContainer from './ToastContainer';
 
 export default function AppLayout({ children }) {
   // --- Resizing State ---
@@ -72,6 +73,7 @@ export default function AppLayout({ children }) {
       {/* 3D Viewport Area */}
       <div className="flex-1 relative rounded-xl overflow-hidden shadow-inner border border-[#333333]">
         {children}
+        <ToastContainer />
       </div>
 
       {/* Vertical Splitter for Sidebar */}
