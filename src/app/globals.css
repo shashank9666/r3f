@@ -27,18 +27,17 @@ body {
 
 /* Custom Scrollbar for Blender Theme */
 ::-webkit-scrollbar {
-  width: 14px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #333333;
-  border-left: 1px solid #1a1a1a;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: #505050;
-  border: 3px solid #333333;
-  border-radius: 10px;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
