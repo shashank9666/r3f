@@ -221,6 +221,8 @@ export const useStore = create(
     dofFocalLength: 0.02,
     dofBokehScale: 2.0,
     ssaoEnabled: false,
+    pixelationEnabled: false,
+    pixelationGranularity: 5,
   },
   updatePostProcessingSettings: (updates) => set((state) => ({ postProcessingSettings: { ...state.postProcessingSettings, ...updates } })),
   resetPostProcessingSettings: () => set({ postProcessingSettings: {
@@ -237,6 +239,8 @@ export const useStore = create(
     dofFocalLength: 0.02,
     dofBokehScale: 2.0,
     ssaoEnabled: false,
+    pixelationEnabled: false,
+    pixelationGranularity: 5,
   }}),
 
   movementSpeed: 5,

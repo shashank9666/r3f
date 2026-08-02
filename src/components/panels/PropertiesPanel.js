@@ -5,7 +5,7 @@ import { useStore } from '../../store/useStore';
 import { 
   Wrench, Camera, Printer, Layers, Droplets, Globe, 
   Box, Share2, Activity, Link, Triangle, Circle, Grid, 
-  Square, MousePointer 
+  Square, MousePointer, Wand2
 } from 'lucide-react';
 
 import ObjectProperties from './properties/ObjectProperties';
@@ -13,6 +13,7 @@ import MaterialProperties from './properties/MaterialProperties';
 import DataProperties from './properties/DataProperties';
 import WorldProperties from './properties/WorldProperties';
 import RenderProperties from './properties/RenderProperties';
+import PostProcessingProperties from './properties/PostProcessingProperties';
 
 export default function PropertiesPanel() {
   const [activeTab, setActiveTab] = useState('object');
@@ -27,6 +28,7 @@ export default function PropertiesPanel() {
     // Context Group (White)
     { id: 'tool', icon: Wrench, title: 'Active Tool and Workspace settings', color: 'text-white' },
     { id: 'render', icon: Camera, title: 'Render Properties', color: 'text-white' },
+    { id: 'postprocessing', icon: Wand2, title: 'Post Processing Properties', color: 'text-white' },
     { id: 'output', icon: Printer, title: 'Output Properties', color: 'text-white' },
     { id: 'view_layer', icon: Layers, title: 'View Layer Properties', color: 'text-white' },
     { id: 'scene', icon: Droplets, title: 'Scene Properties', color: 'text-white' },
@@ -148,6 +150,7 @@ export default function PropertiesPanel() {
 
         {/* WORLD / SCENE PLACEHOLDERS */}
         {activeTab === 'render' && <RenderProperties />}
+        {activeTab === 'postprocessing' && <PostProcessingProperties />}
         {activeTab === 'output' && renderPlaceholder('Output Properties')}
         {activeTab === 'view_layer' && renderPlaceholder('View Layer Properties')}
         {activeTab === 'scene' && renderPlaceholder('Scene Properties')}

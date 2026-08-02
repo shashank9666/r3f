@@ -190,6 +190,34 @@ export default function PostProcessingProperties() {
               </div>
             )}
           </div>
+          {/* Pixelation */}
+          <div className="bg-[#303030] rounded border border-[#1d1d1d]">
+            <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d] flex items-center gap-2">
+              <input 
+                type="checkbox" 
+                checked={settings.pixelationEnabled} 
+                onChange={(e) => updateSettings({ pixelationEnabled: e.target.checked })}
+                className="accent-[#4772b3]"
+              />
+              <span>Pixelation</span>
+            </div>
+            {settings.pixelationEnabled && (
+              <div className="p-3 flex flex-col gap-3">
+                <div className="flex flex-col gap-1 mt-1">
+                  <div className="flex justify-between">
+                    <span className="text-[#a4a4a4]">Granularity</span>
+                    <span className="text-white text-xs">{settings.pixelationGranularity}</span>
+                  </div>
+                  <input 
+                    type="range" min="1" max="50" step="1"
+                    value={settings.pixelationGranularity}
+                    onChange={(e) => updateSettings({ pixelationGranularity: parseInt(e.target.value) })}
+                    className="w-full accent-[#4772b3]"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </>
       )}
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
-import { OrbitControls, FlyControls, OrthographicCamera, PerspectiveCamera, Grid, Edges, Environment } from "@react-three/drei";
+import { OrbitControls, FlyControls, OrthographicCamera, PerspectiveCamera, Grid, Edges, Environment, Sky } from "@react-three/drei";
+import { EffectComposer, Bloom, Vignette, DepthOfField } from "@react-three/postprocessing";
 import { useStore, CANVAS_SETTINGS, GRID_SETTINGS, FOG_SETTINGS, AXES_SETTINGS } from "../../store/useStore";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from 'three';
@@ -42,6 +43,12 @@ function RenderSettingsApplier() {
     gl.toneMapping = THREE[renderSettings.toneMapping] || THREE.NoToneMapping;
     gl.toneMappingExposure = renderSettings.exposure;
     gl.shadowMap.enabled = renderSettings.shadows;
+    
+    // Set Shadow Map Type
+    if (renderSettings.shadowType === 'Basic') gl.shadowMap.type = THREE.BasicShadowMap;
+    else if (renderSettings.shadowType === 'PCF') gl.shadowMap.type = THREE.PCFShadowMap;
+    else if (renderSettings.shadowType === 'PCFSoft') gl.shadowMap.type = THREE.PCFSoftShadowMap;
+    else if (renderSettings.shadowType === 'VSM') gl.shadowMap.type = THREE.VSMShadowMap;
   }, [renderSettings, gl]);
   
   return null;
@@ -53,7 +60,7 @@ export default function Viewport() {
     showGrid,
     showCube
   } = useStore((state) => state.viewport);
-  const { setControls, projection, isWalking, movementSpeed, isCameraView, setSelectedIds, activeTool, viewportShading, worldSettings } = useStore();
+  const { setControls, projection, isWalking, movementSpeed, isCameraView, setSelectedIds, activeTool, viewportShading, worldSettings, postProcessingSettings, renderSettings } = useStore();
   const controlsRef = useRef();
   const [contextMenuPos, setContextMenuPos] = useState(null);
 
@@ -90,6 +97,7 @@ export default function Viewport() {
       
       <Canvas 
         {...CANVAS_SETTINGS} 
+        dpr={renderSettings.dpr}
         camera={undefined}
         onPointerMissed={() => setSelectedIds([])}
       >
@@ -104,12 +112,39 @@ export default function Viewport() {
         <SceneRegister />
         <RenderSettingsApplier />
         
-        <color attach="background" args={[worldSettings.backgroundColor]} />
-        {worldSettings.fogEnabled && (
+        {/* Background / Environment */}
+        {worldSettings.backgroundType === 'color' && (
+          <color attach="background" args={[worldSettings.backgroundColor]} />
+        )}
+        
+        {worldSettings.backgroundType === 'sky' && (
+          <Sky 
+            distance={450000} 
+            sunPosition={worldSettings.skySunPosition} 
+            inclination={0} 
+            azimuth={0.25} 
+            turbidity={worldSettings.skyTurbidity}
+            rayleigh={worldSettings.skyRayleigh}
+            mieCoefficient={worldSettings.skyMieCoefficient}
+            mieDirectionalG={worldSettings.skyMieDirectionalG}
+          />
+        )}
+
+        {worldSettings.environment !== 'none' && (
+          <Environment 
+            preset={worldSettings.environment} 
+            background={worldSettings.backgroundType === 'environment'} 
+            blur={worldSettings.environmentBlur}
+            environmentIntensity={worldSettings.environmentIntensity}
+          />
+        )}
+
+        {/* Fog */}
+        {worldSettings.fogEnabled && worldSettings.fogType === 'linear' && (
           <fog attach="fog" args={[worldSettings.fogColor, worldSettings.fogNear, worldSettings.fogFar]} />
         )}
-        {worldSettings.environment !== 'none' && (
-          <Environment preset={worldSettings.environment} background={false} />
+        {worldSettings.fogEnabled && worldSettings.fogType === 'exponential' && (
+          <fogExp2 attach="fog" args={[worldSettings.fogColor, worldSettings.fogDensity]} />
         )}
 
         {isWalking ? (
@@ -205,6 +240,33 @@ export default function Viewport() {
 
         {/* Render interactive objects from the store */}
         <SceneObjects />
+
+        {/* Post Processing Pipeline */}
+        {postProcessingSettings.enabled && (
+          <EffectComposer disableNormalPass>
+            {postProcessingSettings.bloomEnabled && (
+              <Bloom 
+                intensity={postProcessingSettings.bloomIntensity}
+                luminanceThreshold={postProcessingSettings.bloomLuminanceThreshold}
+                luminanceSmoothing={postProcessingSettings.bloomLuminanceSmoothing}
+              />
+            )}
+            {postProcessingSettings.vignetteEnabled && (
+              <Vignette 
+                eskil={false} 
+                offset={postProcessingSettings.vignetteOffset} 
+                darkness={postProcessingSettings.vignetteDarkness} 
+              />
+            )}
+            {postProcessingSettings.dofEnabled && (
+              <DepthOfField 
+                focusDistance={postProcessingSettings.dofFocusDistance}
+                focalLength={postProcessingSettings.dofFocalLength}
+                bokehScale={postProcessingSettings.dofBokehScale}
+              />
+            )}
+          </EffectComposer>
+        )}
       </Canvas>
       </div>
     </div>
