@@ -4,10 +4,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { TransformControls } from '@react-three/drei';
 import * as THREE from 'three';
-
 import ModalTransformHandler from './ModalTransformHandler';
+import TransformProxy from './TransformProxy';
 
-function SceneObjectItem({ obj, isSelected, isActive, transformState, updateObject, renderObjectBody, objectRefs }) {
+function SceneObjectItem({ obj, isSelected, isActive, transformState, updateObject, renderObjectBody, objectRefs, selectedIds }) {
   const [groupEl, setGroupEl] = useState(null);
 
   return (
@@ -26,7 +26,7 @@ function SceneObjectItem({ obj, isSelected, isActive, transformState, updateObje
         {renderObjectBody(obj, isSelected)}
       </group>
       
-      {isActive && transformState.mode !== 'idle' && groupEl && (
+      {isActive && transformState.mode !== 'idle' && groupEl && selectedIds.length <= 1 && (
         <TransformControls
           object={groupEl}
           mode={transformState.mode}
@@ -185,6 +185,7 @@ export default function SceneObjects() {
           updateObject={updateObject}
           renderObjectBody={renderObjectBody}
           objectRefs={objectRefs}
+          selectedIds={selectedIds}
         />
       ))}
     </>

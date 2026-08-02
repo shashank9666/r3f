@@ -257,7 +257,19 @@ export const useStore = create(
   // Selection
   selectedIds: [],
   activeId: null,
-  setSelectedIds: (ids) => set({ selectedIds: ids, activeId: ids.length > 0 ? ids[ids.length - 1] : null }),
+  setSelectedIds: (ids) => set((state) => {
+    // Only reset mode if it's a gizmo transform (active is false).
+    // Modal transform (active: true) handles its own lifecycle.
+    const newTransformState = (!state.transformState.active && state.transformState.mode !== 'idle') 
+      ? { ...state.transformState, mode: 'idle', axisConstraint: null, planeConstraint: null }
+      : state.transformState;
+      
+    return { 
+      selectedIds: ids, 
+      activeId: ids.length > 0 ? ids[ids.length - 1] : null,
+      transformState: newTransformState
+    };
+  }),
 
   // Modal Transform State Machine
   transformState: {
