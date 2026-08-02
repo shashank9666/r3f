@@ -41,7 +41,6 @@ function SceneObjectItem({ obj, isSelected, isActive, transformState, updateObje
                 rotation: [groupEl.rotation.x, groupEl.rotation.y, groupEl.rotation.z],
                 scale: [groupEl.scale.x, groupEl.scale.y, groupEl.scale.z]
               });
-              setTransformState({ mode: 'idle', axisConstraint: null, planeConstraint: null });
             }
           }}
         />

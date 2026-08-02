@@ -3,7 +3,7 @@
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, FlyControls, OrthographicCamera, PerspectiveCamera, Grid, Edges } from "@react-three/drei";
 import { useStore, CANVAS_SETTINGS, GRID_SETTINGS, FOG_SETTINGS, AXES_SETTINGS } from "../../store/useStore";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import NavigationToolbar from "./ViewportNavigation/NavigationToolbar";
 import NavigationGizmo from "./NavigationGizmo/NavigationGizmo";
 import SceneObjects from "./SceneObjects";
@@ -11,6 +11,7 @@ import ViewportNavigationHandler from "./ViewportNavigationHandler";
 import TransformHUD from "./TransformHUD";
 import ViewportHotkeys from "./ViewportHotkeys";
 import BoxSelectionTool from './ViewportNavigation/BoxSelectionTool';
+import ViewportContextMenu from './ViewportContextMenu';
 
 function SceneRegister() {
   const { scene, camera } = useThree();
@@ -38,6 +39,7 @@ export default function Viewport() {
   } = useStore((state) => state.viewport);
   const { setControls, projection, isWalking, movementSpeed, isCameraView, setSelectedIds, activeTool } = useStore();
   const controlsRef = useRef();
+  const [contextMenuPos, setContextMenuPos] = useState(null);
 
   useEffect(() => {
     if (controlsRef.current) {
@@ -101,9 +103,9 @@ export default function Viewport() {
             makeDefault 
             enabled={activeTool !== 'box-select'} 
             mouseButtons={{
-              LEFT: activeTool === 'pan' ? 2 : activeTool === 'zoom' ? 1 : 0, // 0: ROTATE, 2: PAN, 1: DOLLY
-              MIDDLE: 1, // DOLLY
-              RIGHT: 2 // PAN
+              LEFT: activeTool === 'pan' ? 2 : activeTool === 'zoom' ? 1 : 99, // 99 means NONE, freeing it up for selection
+              MIDDLE: 0, // ROTATE (Orbit)
+              RIGHT: 99 // Free up for Context Menu
             }}
           />
         )}
