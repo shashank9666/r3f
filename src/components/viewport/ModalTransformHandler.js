@@ -196,13 +196,16 @@ export default function ModalTransformHandler({ objectRefs }) {
     selectedIds.forEach(id => {
       const ref = objectRefs.current[id];
       if (ref) {
-        updateObject(id, { position: [ref.position.x, ref.position.y, ref.position.z] });
+        updateObject(id, { 
+          position: [ref.position.x, ref.position.y, ref.position.z],
+          rotation: [ref.rotation.x, ref.rotation.y, ref.rotation.z],
+          scale: [ref.scale.x, ref.scale.y, ref.scale.z]
+        });
       }
     });
 
     setTransformState({ 
       active: false, 
-      mode: 'idle', 
       axisConstraint: null, 
       planeConstraint: null, 
       numericBuffer: '' 
@@ -219,7 +222,6 @@ export default function ModalTransformHandler({ objectRefs }) {
     });
     setTransformState({ 
       active: false, 
-      mode: 'idle', 
       axisConstraint: null, 
       planeConstraint: null, 
       numericBuffer: '' 

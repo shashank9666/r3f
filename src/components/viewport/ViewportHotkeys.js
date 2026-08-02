@@ -184,12 +184,10 @@ export default function ViewportHotkeys() {
             const addObject = useStore.getState().addObject;
             
             // Unselect all first (handled implicitly by multiple adds or manually)
-            // Add each object with a slight offset
             data.objects.forEach(obj => {
-              // Copy properties except ID, slightly offset position
-              const { id, type, category, position, ...rest } = obj;
-              const newPos = [position[0] + 0.5, position[1] + 0.5, position[2] + 0.5];
-              addObject(type, category, { ...rest, position: newPos });
+              // Copy properties except ID, exact same position, rotation, and scale
+              const { id, type, category, ...rest } = obj;
+              addObject(type, category, { ...rest });
             });
           }
         } catch (err) {

@@ -132,7 +132,7 @@ export const useStore = create(
   setCollections: (collections) => set({ collections }),
   addCollection: (name, parentId = 'root') => set((state) => {
     const newId = `col-${Date.now()}`;
-    const newCollection = { id: newId, name, visible: true, renderable: true, isExpanded: true, parentId };
+    const newCollection = { id: newId, name, visible: true, renderable: true, selectable: true, isExpanded: true, parentId };
     return { collections: [...state.collections, newCollection], activeCollectionId: newId };
   }),
   updateCollection: (id, updates) => set((state) => ({
@@ -172,6 +172,9 @@ export const useStore = create(
       rotation: [0, 0, 0],
       scale: [1, 1, 1],
       color: '#cccccc', // Slightly brighter default
+      visible: true,
+      renderable: true,
+      selectable: true,
       ...properties
     };
     
