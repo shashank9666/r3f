@@ -98,6 +98,13 @@ export default function ModalTransformHandler({ objectRefs }) {
         offset.z = Math.round(offset.z);
       }
       
+      // Update HUD imperatively
+      const deltaEl = document.getElementById('transform-hud-delta');
+      if (deltaEl) {
+        const mag = offset.length();
+        deltaEl.innerText = `Dx: ${offset.x.toFixed(4)} m  Dy: ${offset.y.toFixed(4)} m  Dz: ${offset.z.toFixed(4)} m (${mag.toFixed(4)} m)`;
+      }
+      
       // Update object refs imperatively
       selectedIds.forEach(id => {
         const startPosArray = transformState.startPositions[id];

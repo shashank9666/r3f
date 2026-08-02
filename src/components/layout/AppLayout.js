@@ -67,7 +67,7 @@ export default function AppLayout({ children }) {
   return (
     <div 
       ref={containerRef}
-      className="flex w-full h-screen overflow-hidden bg-[#1e1e1e] text-[#cccccc] font-sans pt-12 p-2 gap-2"
+      className="flex w-full h-screen overflow-hidden bg-[#1e1e1e] text-[#cccccc] font-sans pt-12 p-1 gap-1"
     >
       {/* 3D Viewport Area */}
       <div className="flex-1 relative rounded-xl overflow-hidden shadow-inner border border-[#333333]">
@@ -82,7 +82,7 @@ export default function AppLayout({ children }) {
 
       {/* Right Sidebar */}
       <div 
-        className="flex flex-col flex-shrink-0 h-full gap-2" 
+        className="flex flex-col flex-shrink-0 h-full gap-1" 
         style={{ width: `${sidebarWidth}px` }}
       >
         {/* Top Half: Outliner (Scene Collection) */}

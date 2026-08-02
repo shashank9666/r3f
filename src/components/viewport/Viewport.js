@@ -80,13 +80,24 @@ export default function Viewport() {
         <ViewportNavigationHandler />
         <SceneRegister />
         <color attach="background" args={["#303030"]} />
-        <fog attach="fog" args={[FOG_SETTINGS.color, FOG_SETTINGS.near, FOG_SETTINGS.far]} />
+        {projection === 'perspective' && (
+          <fog attach="fog" args={[FOG_SETTINGS.color, FOG_SETTINGS.near, FOG_SETTINGS.far]} />
+        )}
 
         {isWalking ? (
-          <FlyControls ref={controlsRef} makeDefault movementSpeed={movementSpeed} rollSpeed={0.5} dragToLook={false} />
+          <FlyControls 
+            ref={(node) => {
+              controlsRef.current = node;
+              if (node) setControls(node);
+            }} 
+            makeDefault movementSpeed={movementSpeed} rollSpeed={0.5} dragToLook={false} 
+          />
         ) : (
           <OrbitControls 
-            ref={controlsRef} 
+            ref={(node) => {
+              controlsRef.current = node;
+              if (node) setControls(node);
+            }} 
             makeDefault 
             enabled={activeTool !== 'box-select'} 
             mouseButtons={{
