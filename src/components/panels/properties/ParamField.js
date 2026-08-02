@@ -99,7 +99,12 @@ export function ParamField({ field, value, onChange }) {
               onChange={(e) => onChange(e.target.value)}
               className="w-14 h-6 p-0 border-0 rounded cursor-pointer bg-transparent"
             />
-            <span className="font-mono text-white text-[10px] uppercase w-14">{value}</span>
+            <input
+              type="text"
+              value={value || '#ffffff'}
+              onChange={(e) => onChange(e.target.value)}
+              className="font-mono text-white text-[10px] uppercase w-14 bg-transparent border-0 outline-none"
+            />
           </div>
         </div>
       );

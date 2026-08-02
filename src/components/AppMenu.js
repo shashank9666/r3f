@@ -58,8 +58,14 @@ export default function AppMenu() {
   const handleNew = () => {
     if (window.confirm("Are you sure you want to create a new file? Unsaved changes will be lost.")) {
       useStore.setState({ objects: [], selectedIds: [], activeId: null });
-      // In a real app we might reset settings too, but resetting scene objects is enough for now
       setActiveMenu(null);
+    }
+  };
+
+  const handleHardReset = () => {
+    if (window.confirm("HARD RESET: This will wipe all localStorage data, settings, and the current scene. Are you absolutely sure?")) {
+      localStorage.clear();
+      window.location.reload();
     }
   };
 
@@ -178,6 +184,9 @@ export default function AppMenu() {
               <div className="px-4 py-1.5 hover:bg-[#4772b3] cursor-pointer flex justify-between group" onClick={handleOpenClick}>
                 <span>Open...</span>
                 <span className="text-[#888] group-hover:text-white/70 text-xs">Ctrl O</span>
+              </div>
+              <div className="px-4 py-1.5 hover:bg-[#ff4444] cursor-pointer flex justify-between group" onClick={handleHardReset}>
+                <span>Hard Reset (Clear All)</span>
               </div>
               <div className="h-[1px] bg-[#404040] my-1 mx-2"></div>
               <div className="px-4 py-1.5 hover:bg-[#4772b3] cursor-pointer flex justify-between group" onClick={handleSave}>

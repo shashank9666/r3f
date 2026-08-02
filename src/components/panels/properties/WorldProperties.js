@@ -55,7 +55,12 @@ export default function WorldProperties() {
                   onChange={(e) => updateWorldSettings({ backgroundColor: e.target.value })}
                   className="w-16 h-6 p-0 border-0 rounded cursor-pointer bg-transparent"
                 />
-                <span className="font-mono text-white text-[10px] uppercase w-14">{worldSettings.backgroundColor}</span>
+                <input 
+                  type="text" 
+                  value={worldSettings.backgroundColor} 
+                  onChange={(e) => updateWorldSettings({ backgroundColor: e.target.value })}
+                  className="font-mono text-white text-[10px] uppercase w-14 bg-transparent border-0 outline-none"
+                />
               </div>
             </div>
           )}
@@ -141,7 +146,12 @@ export default function WorldProperties() {
               <input type="color" value={worldSettings.stageFloorColor}
                 onChange={(e) => updateWorldSettings({ stageFloorColor: e.target.value })}
                 className="w-16 h-6 p-0 border-0 rounded cursor-pointer bg-transparent" />
-              <span className="font-mono text-white text-[10px] uppercase w-14">{worldSettings.stageFloorColor}</span>
+              <input 
+                type="text" 
+                value={worldSettings.stageFloorColor} 
+                onChange={(e) => updateWorldSettings({ stageFloorColor: e.target.value })}
+                className="font-mono text-white text-[10px] uppercase w-14 bg-transparent border-0 outline-none" 
+              />
             </div>
           </div>
           {[
