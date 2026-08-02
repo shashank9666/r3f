@@ -162,13 +162,43 @@ export function ParamList({ schema, values, onChange }) {
   );
 }
 
+/** Generic collapsible section (like Blender's panels) */
+export function Section({ label, children, defaultOpen = true }) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div className="flex flex-col border-b border-[#1d1d1d]">
+      <div 
+        className="flex items-center gap-1.5 px-2 py-1.5 bg-[#303030] cursor-pointer select-none hover:bg-[#353535] transition-colors"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="text-[#888]">
+          {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        </span>
+        <span className="font-semibold text-[#dddddd] text-[11px] uppercase tracking-wide">{label}</span>
+      </div>
+      {open && (
+        <div className="p-3 flex flex-col gap-3 bg-[#242424]">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Card with a checkbox in the header; body only renders when enabled. */
 export function CollapsibleFeature({ label, note, enabled, onToggle, children, defaultOpen = true }) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div className="bg-[#303030] rounded border border-[#1d1d1d]">
-      <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d] flex items-center gap-2">
+    <div className="flex flex-col border-b border-[#1d1d1d]">
+      <div className="flex items-center gap-1.5 px-2 py-1.5 bg-[#303030] hover:bg-[#353535] transition-colors select-none">
+        <span
+          className="text-[#888] cursor-pointer"
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        </span>
         <input
           type="checkbox"
           checked={Boolean(enabled)}
@@ -176,19 +206,14 @@ export function CollapsibleFeature({ label, note, enabled, onToggle, children, d
           className="accent-[#4772b3]"
         />
         <span
-          className="flex-1 cursor-pointer select-none"
+          className="flex-1 font-semibold text-[#dddddd] text-[11px] uppercase tracking-wide cursor-pointer"
           onClick={() => setOpen((v) => !v)}
         >
           {label}
         </span>
-        {enabled && (
-          <button onClick={() => setOpen((v) => !v)} className="text-[#888] hover:text-white">
-            {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-          </button>
-        )}
       </div>
       {enabled && open && (
-        <div className="p-3 flex flex-col gap-3">
+        <div className="p-3 flex flex-col gap-3 bg-[#242424]">
           {note && <div className="text-[10px] text-[#7a7a7a] leading-snug">{note}</div>}
           {children}
         </div>

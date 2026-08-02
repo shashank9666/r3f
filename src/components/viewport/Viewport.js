@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
-import { OrbitControls, FlyControls, OrthographicCamera, PerspectiveCamera, Grid, Environment, Sky, ContactShadows, AccumulativeShadows, RandomizedLight, Backdrop, useProgress } from "@react-three/drei";
+import { OrbitControls, FlyControls, OrthographicCamera, PerspectiveCamera, Grid, Environment, Sky, ContactShadows, AccumulativeShadows, RandomizedLight, Backdrop } from "@react-three/drei";
 import { Selection } from "@react-three/postprocessing";
 import EffectsPipeline from './effects/EffectsPipeline';
 import WorldFeatures from './drei/WorldFeatures';
@@ -57,16 +57,50 @@ function RenderSettingsApplier() {
   return null;
 }
 
-/** Mirrors drei's global loading state into the store for the viewport header. */
+/** Mirrors loading state into the store for the viewport header. */
 function ProgressReporter() {
-  const { active, progress, item } = useProgress();
   const setLoadingProgress = useStore((state) => state.setLoadingProgress);
+
   useEffect(() => {
-    setLoadingProgress({ active, progress, item });
-  }, [active, progress, item, setLoadingProgress]);
+    let timeout;
+    const updateProgress = (active, progress, item) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        setLoadingProgress({ active, progress, item });
+      }, 0);
+    };
+
+    const handleStart = (url, itemsLoaded, itemsTotal) => updateProgress(true, (itemsLoaded / itemsTotal) * 100, url);
+    const handleLoad = () => updateProgress(false, 100, '');
+    const handleProgress = (url, itemsLoaded, itemsTotal) => updateProgress(true, (itemsLoaded / itemsTotal) * 100, url);
+    
+    const origStart = THREE.DefaultLoadingManager.onStart;
+    const origLoad = THREE.DefaultLoadingManager.onLoad;
+    const origProgress = THREE.DefaultLoadingManager.onProgress;
+
+    THREE.DefaultLoadingManager.onStart = (url, loaded, total) => {
+      handleStart(url, loaded, total);
+      if (origStart) origStart(url, loaded, total);
+    };
+    THREE.DefaultLoadingManager.onLoad = () => {
+      handleLoad();
+      if (origLoad) origLoad();
+    };
+    THREE.DefaultLoadingManager.onProgress = (url, loaded, total) => {
+      handleProgress(url, loaded, total);
+      if (origProgress) origProgress(url, loaded, total);
+    };
+
+    return () => {
+      clearTimeout(timeout);
+      THREE.DefaultLoadingManager.onStart = origStart;
+      THREE.DefaultLoadingManager.onLoad = origLoad;
+      THREE.DefaultLoadingManager.onProgress = origProgress;
+    };
+  }, [setLoadingProgress]);
+
   return null;
 }
-
 export default function Viewport() {
   const {
     lighting,

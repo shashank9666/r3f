@@ -184,6 +184,18 @@ export default function Outliner() {
         <div className={`px-1 flex items-center justify-center opacity-0 group-hover:opacity-100 ${!isRenderable ? 'opacity-100' : ''}`} onClick={(e) => { e.stopPropagation(); updateObject(obj.id, { renderable: !isRenderable }); }}>
           {isRenderable ? <Camera size={13} className={isSelected ? 'text-white' : 'text-[#888]'} /> : <CameraOff size={13} className="text-[#ff4444]" />}
         </div>
+        {obj.category === 'camera' && (
+          <div 
+            className="px-1 flex items-center justify-center opacity-100" 
+            title="Set as Active Camera"
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              setActiveSceneCamera(obj.id === activeSceneCameraId ? null : obj.id); 
+            }}
+          >
+            <Video size={13} className={obj.id === activeSceneCameraId ? 'text-[#4caf50]' : 'text-[#555] hover:text-[#fff]'} />
+          </div>
+        )}
       </div>
     );
   };
