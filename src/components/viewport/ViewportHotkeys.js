@@ -33,6 +33,11 @@ export default function ViewportHotkeys() {
         setShowAddMenu(true);
       }
       
+      // B: Box Select
+      if (key === 'b' && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+        useStore.getState().setActiveTool('box-select');
+      }
+      
       // X or Delete: Delete Objects
       if (key === 'x' || e.key === 'Delete') {
         if (selectedIds.length > 0) {

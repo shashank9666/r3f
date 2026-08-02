@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { ZoomIn, Hand, Video, Grid3X3 } from 'lucide-react';
+import { ZoomIn, Hand, Video, Grid3X3, MousePointer, Square } from 'lucide-react';
 import ToolbarButton from './ToolbarButton';
 import { useZoomTool } from './ZoomTool';
 import { usePanTool } from './PanTool';
@@ -17,6 +17,18 @@ export default function NavigationToolbar() {
 
   return (
     <div className="absolute right-4 top-40 flex flex-col items-center z-40 select-none">
+      <ToolbarButton 
+        icon={MousePointer} 
+        title="Select Mode" 
+        isActive={activeTool === 'select'}
+        onClick={() => setActiveTool('select')}
+      />
+      <ToolbarButton 
+        icon={Square} 
+        title="Box Select (B)" 
+        isActive={activeTool === 'box-select'}
+        onClick={() => setActiveTool(activeTool === 'box-select' ? 'select' : 'box-select')}
+      />
       <ToolbarButton 
         icon={ZoomIn} 
         title="Zoom Mode" 

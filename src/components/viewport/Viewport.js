@@ -10,17 +10,24 @@ import SceneObjects from "./SceneObjects";
 import ViewportNavigationHandler from "./ViewportNavigationHandler";
 import TransformHUD from "./TransformHUD";
 import ViewportHotkeys from "./ViewportHotkeys";
+import BoxSelectionTool from './ViewportNavigation/BoxSelectionTool';
 
 function SceneRegister() {
   const { scene, camera } = useThree();
-  const { setScene, setCamera } = useStore();
+  const setScene = useStore((state) => state.setScene);
+  const setCamera = useStore((state) => state.setCamera);
   
   useEffect(() => {
     setScene(scene);
     setCamera(camera);
   }, [scene, camera, setScene, setCamera]);
   
-  return null;
+  return (
+    <>
+      <ViewportNavigationHandler />
+      <BoxSelectionTool />
+    </>
+  );
 }
 
 export default function Viewport() {
