@@ -138,6 +138,30 @@ export const useStore = create(
   setSavedCameraState: (state) => set({ savedCameraState: state }),
   projection: 'perspective',
   setProjection: (projection) => set({ projection }),
+
+  // World & Environment Settings
+  worldSettings: { 
+    backgroundColor: '#303030', 
+    environment: 'none', 
+    fogEnabled: false, 
+    fogColor: '#303030', 
+    fogNear: 10, 
+    fogFar: 100, 
+    ambientIntensity: 0.5, 
+    ambientColor: '#ffffff',
+    showGrid: true
+  },
+  updateWorldSettings: (updates) => set((state) => ({ worldSettings: { ...state.worldSettings, ...updates } })),
+
+  // Render & PostProcessing Settings
+  renderSettings: { 
+    toneMapping: 'ACESFilmic', 
+    exposure: 1.0, 
+    shadows: true, 
+    antialias: true 
+  },
+  updateRenderSettings: (updates) => set((state) => ({ renderSettings: { ...state.renderSettings, ...updates } })),
+
   movementSpeed: 5,
   setMovementSpeed: (speed) => set({ movementSpeed: speed }),
   zoomSpeed: 0.1,

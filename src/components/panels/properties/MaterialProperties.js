@@ -23,10 +23,10 @@ export default function MaterialProperties({ activeObject }) {
       <div className="bg-[#303030] rounded border border-[#1d1d1d]">
         <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d]">Surface</div>
         <div className="p-3 flex flex-col gap-3">
-          
+
           <div className="flex items-center justify-between">
             <span className="text-[#a4a4a4]">Type</span>
-            <select 
+            <select
               className="bg-[#1d1d1d] text-white border border-[#404040] rounded px-2 py-1 outline-none text-xs w-32"
               value={activeObject.materialType || 'standard'}
               onChange={(e) => handleMaterialChange('materialType', e.target.value)}
@@ -42,9 +42,9 @@ export default function MaterialProperties({ activeObject }) {
           <div className="flex items-center justify-between">
             <span className="text-[#a4a4a4]">Base Color</span>
             <div className="flex items-center gap-2">
-              <input 
-                type="color" 
-                value={activeObject.color || '#ffffff'} 
+              <input
+                type="color"
+                value={activeObject.color || '#ffffff'}
                 onChange={(e) => handleMaterialChange('color', e.target.value)}
                 className="w-16 h-6 p-0 border-0 rounded cursor-pointer"
               />

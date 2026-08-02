@@ -314,6 +314,10 @@ export default function Outliner() {
         className="flex-1 overflow-y-auto py-1"
         onDragOver={handleDragOver}
         onDrop={(e) => handleDrop(e, 'root')}
+        onClick={() => {
+          useStore.getState().setActiveCollectionId('root');
+          useStore.getState().setSelectedIds([]);
+        }}
       >
         {renderCollection('root', 8)}
       </div>

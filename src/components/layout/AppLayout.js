@@ -9,8 +9,11 @@ export default function AppLayout({ children }) {
   // --- Resizing State ---
   // Sidebar width in pixels
   const [sidebarWidth, setSidebarWidth] = useState(320); 
-  // Outliner height in pixels
   const [outlinerHeight, setOutlinerHeight] = useState(300);
+
+  useEffect(() => {
+    setOutlinerHeight(window.innerHeight * 0.3);
+  }, []);
 
   const containerRef = useRef(null);
 

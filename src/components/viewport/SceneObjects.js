@@ -130,14 +130,14 @@ export default function SceneObjects() {
       case 'basic': 
         return <meshBasicMaterial color={obj.color} wireframe={false} />;
       case 'physical': 
-        return <meshPhysicalMaterial color={obj.color} roughness={0.7} metalness={0.1} clearcoat={1} {...emissiveProps} />;
+        return <meshPhysicalMaterial color={obj.color} roughness={obj.roughness !== undefined ? obj.roughness : 0.5} metalness={obj.metalness !== undefined ? obj.metalness : 0.0} clearcoat={1} {...emissiveProps} />;
       case 'phong': 
         return <meshPhongMaterial color={obj.color} shininess={30} {...emissiveProps} />;
       case 'lambert': 
         return <meshLambertMaterial color={obj.color} {...emissiveProps} />;
       case 'standard':
       default: 
-        return <meshStandardMaterial color={obj.color} roughness={0.7} {...emissiveProps} />;
+        return <meshStandardMaterial color={obj.color} roughness={obj.roughness !== undefined ? obj.roughness : 0.5} metalness={obj.metalness !== undefined ? obj.metalness : 0.0} {...emissiveProps} />;
     }
   };
 
