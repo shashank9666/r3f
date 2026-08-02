@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react';
 import { useStore } from '../../store/useStore';
 import { TransformControls } from '@react-three/drei';
 import * as THREE from 'three';
+import ModalTransformHandler from './ModalTransformHandler';
 
 export default function SceneObjects() {
   const objects = useStore((state) => state.objects);
@@ -12,28 +13,46 @@ export default function SceneObjects() {
   const activeId = useStore((state) => state.activeId);
   const transformState = useStore((state) => state.transformState);
   const setTransformState = useStore((state) => state.setTransformState);
-  const updateObject = useStore((state) => state.updateObject);
   
-  const transformRef = useRef();
+  const objectRefs = useRef({});
 
-  // Keyboard shortcuts for g (translate) and s (scale)
+  // Keyboard shortcuts for modal transform
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Don't trigger if user is typing in an input field
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-      if (e.key === 'g' || e.key === 'G') {
-        setTransformState({ mode: 'translate' });
-      } else if (e.key === 's' || e.key === 'S') {
-        setTransformState({ mode: 'scale' });
-      } else if (e.key === 'Escape') {
-        setTransformState({ mode: 'idle' });
+      const key = e.key.toLowerCase();
+      
+      if (key === 'g' && !transformState.active) {
+        if (selectedIds.length === 0) return;
+        
+        const startPositions = {};
+        selectedIds.forEach(id => {
+          const obj = objects.find(o => o.id === id);
+          if (obj) startPositions[id] = [...obj.position];
+        });
+        
+        setTransformState({ 
+          active: true,
+          mode: 'translate', 
+          axisConstraint: null,
+          planeConstraint: null,
+          numericBuffer: '',
+          startPositions
+        });
+      } else if (key === 'r' && !transformState.active) {
+        setTransformState({ mode: 'rotate', axisConstraint: null }); // Legacy R
+      } else if (key === 's' && !transformState.active) {
+        setTransformState({ mode: 'scale', axisConstraint: null }); // Legacy S
+      } else if (e.key === 'Escape' && !transformState.active) {
+        setTransformState({ mode: 'idle', axisConstraint: null });
       }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [setTransformState]);
+  }, [setTransformState, transformState.active, selectedIds, objects]);
 
   const handlePointerDown = (e, id) => {
     e.stopPropagation(); // Prevent clicking on things behind
@@ -151,32 +170,37 @@ export default function SceneObjects() {
 
   return (
     <>
+      <ModalTransformHandler objectRefs={objectRefs} />
+      
       {objects.map((obj) => {
         const isSelected = selectedIds.includes(obj.id);
         const isActive = activeId === obj.id;
         
+        // Use TransformControls only for Scale and Rotate currently (or if modal is false)
+        if (isActive && !transformState.active && transformState.mode !== 'idle' && transformState.mode !== 'translate') {
+          return (
+            <TransformControls
+              key={`${obj.id}-transform`}
+              mode={transformState.mode}
+              position={obj.position}
+              rotation={obj.rotation}
+              scale={obj.scale}
+              makeDefault
+            >
+              {renderObjectBody(obj, isSelected)}
+            </TransformControls>
+          );
+        }
+
         return (
-          <group key={obj.id} position={obj.position} rotation={obj.rotation} scale={obj.scale}>
-            {isActive && transformState.mode !== 'idle' ? (
-              <TransformControls
-                ref={transformRef}
-                mode={transformState.mode}
-                onObjectChange={(e) => {
-                  if (e.target.object) {
-                    const { position, rotation, scale } = e.target.object;
-                    updateObject(obj.id, {
-                      position: [position.x, position.y, position.z],
-                      rotation: [rotation.x, rotation.y, rotation.z],
-                      scale: [scale.x, scale.y, scale.z]
-                    });
-                  }
-                }}
-              >
-                {renderObjectBody(obj, isSelected)}
-              </TransformControls>
-            ) : (
-              renderObjectBody(obj, isSelected)
-            )}
+          <group 
+            key={obj.id} 
+            ref={(el) => (objectRefs.current[obj.id] = el)}
+            position={obj.position} 
+            rotation={obj.rotation} 
+            scale={obj.scale}
+          >
+            {renderObjectBody(obj, isSelected)}
           </group>
         );
       })}

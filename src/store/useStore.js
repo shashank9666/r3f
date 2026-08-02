@@ -166,10 +166,16 @@ export const useStore = create(
 
   // Modal Transform State Machine
   transformState: {
+    active: false,
     mode: 'idle', // 'idle' | 'translate' | 'rotate' | 'scale'
-    axisConstraint: null, // null | 'X' | 'Y' | 'Z' | 'XY' | 'YZ' | 'XZ'
+    axisConstraint: null, // null | 'X' | 'Y' | 'Z'
+    planeConstraint: null, // null | 'XY' | 'XZ' | 'YZ'
     numericBuffer: '',
-    originalTransforms: {} // stores transforms when action starts for undo/cancel
+    precision: false,
+    snapping: false,
+    originalTransforms: {}, // { id: { position, rotation, scale } }
+    startPositions: {},
+    mouseStart: null
   },
   setTransformState: (updates) => set((state) => ({
     transformState: { ...state.transformState, ...updates }
