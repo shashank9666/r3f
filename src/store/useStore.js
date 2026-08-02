@@ -1,5 +1,23 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { DREI_OBJECT_MAP } from '../lib/drei/objectCatalog';
+import { EFFECTS } from '../lib/drei/effectCatalog';
+import { RENDER_FEATURES, WORLD_FEATURES, featureDefaults } from '../lib/drei/featureCatalog';
+import { defaultsFor } from '../lib/drei/params';
+
+/** `{ id: { enabled: false, ...defaults } }` for the post-processing catalog. */
+const effectDefaults = () =>
+  Object.fromEntries(EFFECTS.map((e) => [e.id, { enabled: false, ...defaultsFor(e.params) }]));
+
+const renderFeatureDefaults = () => featureDefaults(RENDER_FEATURES);
+const worldFeatureDefaults = () => featureDefaults(WORLD_FEATURES);
+
+/** Fill in keys added since a scene was saved, without clobbering stored values. */
+const mergeFeatures = (defaults, stored = {}) => {
+  const out = {};
+  for (const [id, def] of Object.entries(defaults)) out[id] = { ...def, ...(stored[id] || {}) };
+  return out;
+};
 
 export const CANVAS_SETTINGS = {
   shadows: true,
@@ -422,6 +440,59 @@ export const useStore = create(
     customEffects: [],
   }}),
 
+  // --- drei feature registries -------------------------------------------
+  // Post-processing passes, keyed by effect id (see lib/drei/effectCatalog).
+  effects: effectDefaults(),
+  updateEffect: (id, updates) => set((state) => ({
+    effects: { ...state.effects, [id]: { ...state.effects[id], ...updates } }
+  })),
+  resetEffects: () => set({ effects: effectDefaults() }),
+
+  // Scene-wide drei render features (caustics, bvh, adaptive dpr, stats, ...).
+  renderFeatures: renderFeatureDefaults(),
+  updateRenderFeature: (id, updates) => set((state) => ({
+    renderFeatures: { ...state.renderFeatures, [id]: { ...state.renderFeatures[id], ...updates } }
+  })),
+  resetRenderFeatures: () => set({ renderFeatures: renderFeatureDefaults() }),
+
+  // Scene-wide drei world features (environment, stars, clouds, camera shake, ...).
+  worldFeatures: worldFeatureDefaults(),
+  updateWorldFeature: (id, updates) => set((state) => ({
+    worldFeatures: { ...state.worldFeatures, [id]: { ...state.worldFeatures[id], ...updates } }
+  })),
+  resetWorldFeatures: () => set({ worldFeatures: worldFeatureDefaults() }),
+
+  // --- per-object drei state ---------------------------------------------
+  updateObjectParams: (id, updates) => set((state) => ({
+    objects: state.objects.map((obj) =>
+      obj.id === id ? { ...obj, params: { ...(obj.params || {}), ...updates } } : obj
+    )
+  })),
+  updateObjectModifier: (id, modifierId, updates) => set((state) => ({
+    objects: state.objects.map((obj) => {
+      if (obj.id !== id) return obj;
+      const modifiers = obj.modifiers || {};
+      return {
+        ...obj,
+        modifiers: { ...modifiers, [modifierId]: { ...(modifiers[modifierId] || {}), ...updates } }
+      };
+    })
+  })),
+  updateObjectAddon: (id, addonId, updates) => set((state) => ({
+    objects: state.objects.map((obj) => {
+      if (obj.id !== id) return obj;
+      const addons = obj.materialAddons || {};
+      return {
+        ...obj,
+        materialAddons: { ...addons, [addonId]: { ...(addons[addonId] || {}), ...updates } }
+      };
+    })
+  })),
+
+  // Loading progress surfaced by drei's useProgress in the status bar.
+  loadingProgress: { active: false, progress: 100, item: '' },
+  setLoadingProgress: (loadingProgress) => set({ loadingProgress }),
+
   movementSpeed: 5,
   setMovementSpeed: (speed) => set({ movementSpeed: speed }),
   zoomSpeed: 0.1,
@@ -469,10 +540,11 @@ export const useStore = create(
   })),
   addObject: (type, category, properties = {}) => set((state) => {
     const newId = `${type}-${Date.now()}`;
+    const catalogEntry = DREI_OBJECT_MAP[type];
     const newObject = {
       id: newId,
       type,
-      category,
+      category: catalogEntry ? (catalogEntry.category || 'drei') : category,
       collectionId: state.activeCollectionId || 'root',
       position: [0, 1, 0],
       rotation: [0, 0, 0],
@@ -481,7 +553,12 @@ export const useStore = create(
       visible: true,
       renderable: true,
       selectable: true,
-      ...properties
+      // drei objects carry their catalog defaults; everything else stays as-is
+      ...(catalogEntry ? { dreiType: type, params: defaultsFor(catalogEntry.params) } : {}),
+      ...properties,
+      ...(catalogEntry && properties.params
+        ? { params: { ...defaultsFor(catalogEntry.params), ...properties.params } }
+        : {})
     };
     
     // Push the previous state to history
@@ -683,7 +760,7 @@ export const useStore = create(
   })
 }), {
   name: 'r3f-editor-storage',
-  version: 3,
+  version: 4,
   storage: createJSONStorage(() => localStorage),
   // Deep-merge: fill any missing keys from the initial state defaults
   migrate: (persistedState, version) => {
@@ -791,11 +868,16 @@ export const useStore = create(
       worldSettings: { ...worldDefaults, ...(persistedState.worldSettings || {}) },
       renderSettings: { ...renderDefaults, ...(persistedState.renderSettings || {}) },
       postProcessingSettings: { ...postProcessingDefaults, ...(persistedState.postProcessingSettings || {}) },
+      effects: mergeFeatures(effectDefaults(), persistedState.effects),
+      renderFeatures: mergeFeatures(renderFeatureDefaults(), persistedState.renderFeatures),
+      worldFeatures: mergeFeatures(worldFeatureDefaults(), persistedState.worldFeatures),
     };
   },
   partialize: (state) => ({
-    // Only persist these state properties
-    objects: state.objects,
+    // Only persist these state properties. Objects sourced from an imported file
+    // are dropped: their blob: URLs die with the page.
+    objects: state.objects.filter((o) => !o.transientAsset),
+    collections: state.collections,
     viewport: state.viewport,
     showSplash: state.showSplash,
     projection: state.projection,
@@ -807,5 +889,8 @@ export const useStore = create(
     worldSettings: state.worldSettings,
     renderSettings: state.renderSettings,
     postProcessingSettings: state.postProcessingSettings,
+    effects: state.effects,
+    renderFeatures: state.renderFeatures,
+    worldFeatures: state.worldFeatures,
   }),
 }));
