@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 import NavigationToolbar from "./ViewportNavigation/NavigationToolbar";
 import NavigationGizmo from "./NavigationGizmo/NavigationGizmo";
 import SceneObjects from "./SceneObjects";
+import ViewportNavigationHandler from "./ViewportNavigationHandler";
 
 function SceneRegister() {
   const { scene, camera } = useThree();
@@ -26,7 +27,7 @@ export default function Viewport() {
     showGrid,
     showCube
   } = useStore((state) => state.viewport);
-  const { setControls, projection, isWalking, movementSpeed, isCameraView, setSelectedIds } = useStore();
+  const { setControls, projection, isWalking, movementSpeed, isCameraView, setSelectedIds, activeTool } = useStore();
   const controlsRef = useRef();
 
   useEffect(() => {
@@ -65,6 +66,7 @@ export default function Viewport() {
         )}
         
         <NavigationGizmo />
+        <ViewportNavigationHandler />
         <SceneRegister />
         <color attach="background" args={["#303030"]} />
         <fog attach="fog" args={[FOG_SETTINGS.color, FOG_SETTINGS.near, FOG_SETTINGS.far]} />
@@ -72,7 +74,7 @@ export default function Viewport() {
         {isWalking ? (
           <FlyControls ref={controlsRef} makeDefault movementSpeed={movementSpeed} rollSpeed={0.5} dragToLook={false} />
         ) : (
-          <OrbitControls ref={controlsRef} makeDefault />
+          <OrbitControls ref={controlsRef} makeDefault enabled={activeTool === 'select'} />
         )}
 
         {/* Basic lighting */}

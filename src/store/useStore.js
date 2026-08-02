@@ -5,8 +5,12 @@ export const CANVAS_SETTINGS = {
   orthographic: false,
   flat: false,
   linear: false,
+  legacy: false,
   frameloop: "always",
   dpr: [1, 2],
+  raycaster: {},
+  resize: { scroll: true, debounce: { scroll: 50, resize: 0 } },
+  eventPrefix: "offset",
   camera: {
     position: [12, 9, 12],
     fov: 45,
@@ -21,8 +25,8 @@ export const CANVAS_SETTINGS = {
 };
 
 export const GRID_SETTINGS = {
-  args: [500, 500],
-  infiniteGrid: true,
+  args: [100, 100],
+  infiniteGrid: false,
   fadeDistance: 100,
   sectionColor: "#5a5a5a",
   cellColor: "#3b3b3b",
@@ -90,11 +94,13 @@ export const useStore = create((set) => ({
   // Navigation and View states
   viewMode: 'perspective', // legacy, we'll use projection
   setViewMode: (mode) => set({ viewMode: mode }),
-  
+
   navigationMode: 'orbit', // legacy, we'll use isWalking
   setNavigationMode: (mode) => set({ navigationMode: mode }),
 
   // --- Toolbar Navigation State ---
+  activeTool: 'select',
+  setActiveTool: (activeTool) => set({ activeTool }),
   zoomLevel: 1,
   setZoomLevel: (level) => set({ zoomLevel: level }),
   isPanning: false,
