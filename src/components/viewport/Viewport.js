@@ -1,11 +1,13 @@
 "use client";
 
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
-import { OrbitControls, FlyControls, OrthographicCamera, PerspectiveCamera, Grid, Edges, Environment, Sky, ContactShadows, AccumulativeShadows, RandomizedLight, Backdrop } from "@react-three/drei";
-import { EffectComposer, Bloom, Vignette, DepthOfField } from "@react-three/postprocessing";
-import { Pixelation } from './effects/Pixelation';
-import { useStore, CANVAS_SETTINGS, GRID_SETTINGS, FOG_SETTINGS, AXES_SETTINGS } from "../../store/useStore";
-import { useEffect, useRef, useState } from "react";
+import { OrbitControls, FlyControls, OrthographicCamera, PerspectiveCamera, Grid, Environment, Sky, ContactShadows, AccumulativeShadows, RandomizedLight, Backdrop, useProgress } from "@react-three/drei";
+import { Selection } from "@react-three/postprocessing";
+import EffectsPipeline from './effects/EffectsPipeline';
+import WorldFeatures from './drei/WorldFeatures';
+import { RenderFeatureEffects, SceneWrappers } from './drei/RenderFeatures';
+import { useStore, CANVAS_SETTINGS, GRID_SETTINGS, AXES_SETTINGS } from "../../store/useStore";
+import { useEffect, useRef, useState, Suspense } from "react";
 import * as THREE from 'three';
 import NavigationToolbar from "./ViewportNavigation/NavigationToolbar";
 import NavigationGizmo from "./NavigationGizmo/NavigationGizmo";
@@ -52,6 +54,16 @@ function RenderSettingsApplier() {
     else if (renderSettings.shadowType === 'VSM') gl.shadowMap.type = THREE.VSMShadowMap;
   }, [renderSettings, gl]);
   
+  return null;
+}
+
+/** Mirrors drei's global loading state into the store for the viewport header. */
+function ProgressReporter() {
+  const { active, progress, item } = useProgress();
+  const setLoadingProgress = useStore((state) => state.setLoadingProgress);
+  useEffect(() => {
+    setLoadingProgress({ active, progress, item });
+  }, [active, progress, item, setLoadingProgress]);
   return null;
 }
 
