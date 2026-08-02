@@ -6,6 +6,7 @@ import { useStore, CANVAS_SETTINGS, GRID_SETTINGS, FOG_SETTINGS, AXES_SETTINGS }
 import { useEffect, useRef } from "react";
 import NavigationToolbar from "./ViewportNavigation/NavigationToolbar";
 import NavigationGizmo from "./NavigationGizmo/NavigationGizmo";
+import SceneObjects from "./SceneObjects";
 
 function SceneRegister() {
   const { scene, camera } = useThree();
@@ -25,7 +26,7 @@ export default function Viewport() {
     showGrid,
     showCube
   } = useStore((state) => state.viewport);
-  const { setControls, projection, isWalking, movementSpeed, isCameraView } = useStore();
+  const { setControls, projection, isWalking, movementSpeed, isCameraView, setSelectedIds } = useStore();
   const controlsRef = useRef();
 
   useEffect(() => {
@@ -52,7 +53,11 @@ export default function Viewport() {
         </div>
       )}
       
-      <Canvas {...CANVAS_SETTINGS} camera={undefined}>
+      <Canvas 
+        {...CANVAS_SETTINGS} 
+        camera={undefined}
+        onPointerMissed={() => setSelectedIds([])}
+      >
         {projection === 'orthographic' ? (
           <OrthographicCamera makeDefault position={[12, 9, 12]} zoom={40} near={0.1} far={1000} />
         ) : (
@@ -148,13 +153,8 @@ export default function Viewport() {
           </mesh>
         </group>
 
-        {/* Default Cube without outlines */}
-        {showCube && (
-          <mesh position={[0, 1, 0]}>
-            <boxGeometry args={[2, 2, 2]} />
-            <meshStandardMaterial color="#8c8c8c" roughness={0.7} />
-          </mesh>
-        )}
+        {/* Render interactive objects from the store */}
+        <SceneObjects />
       </Canvas>
     </div>
   );

@@ -3,6 +3,7 @@
 import SplashScreen from "../components/SplashScreen";
 import Viewport from "../components/viewport/Viewport";
 import TopMenu from "../components/TopMenu";
+import StatusBar from "../components/StatusBar";
 import { useStore } from "../store/useStore";
 
 export default function Home() {
@@ -17,6 +18,9 @@ export default function Home() {
       <div className="absolute inset-0 z-0">
         <Viewport />
       </div>
+      
+      {/* Bottom Status Bar */}
+      <StatusBar />
       
       {/* Overlay Splash Screen Layer */}
       {showSplash && (
