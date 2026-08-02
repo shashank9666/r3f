@@ -1,57 +1,87 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../../store/useStore';
-import { Wrench, Box, Camera, Globe, Monitor, Square, MousePointer } from 'lucide-react';
+import { 
+  Wrench, Camera, Printer, Layers, Droplets, Globe, 
+  Box, Share2, Activity, Link, Triangle, Circle, Grid, 
+  Square, MousePointer 
+} from 'lucide-react';
+
+import ObjectProperties from './properties/ObjectProperties';
+import MaterialProperties from './properties/MaterialProperties';
+import DataProperties from './properties/DataProperties';
 
 export default function PropertiesPanel() {
-  const [activeTab, setActiveTab] = useState('tool');
+  const [activeTab, setActiveTab] = useState('object');
   const activeTool = useStore(state => state.activeTool);
   
   const activeId = useStore(state => state.activeId);
   const objects = useStore(state => state.objects);
-  const updateObject = useStore(state => state.updateObject);
   const activeObject = objects.find(o => o.id === activeId);
 
+  // Define tabs exactly like Blender's vertical properties sidebar
   const tabs = [
-    { id: 'tool', icon: Wrench, title: 'Active Tool and Workspace settings' },
-    { id: 'object', icon: Box, title: 'Object Properties' },
-    { id: 'world', icon: Globe, title: 'World Properties' }
+    // Context Group (White)
+    { id: 'tool', icon: Wrench, title: 'Active Tool and Workspace settings', color: 'text-white' },
+    { id: 'render', icon: Camera, title: 'Render Properties', color: 'text-white' },
+    { id: 'output', icon: Printer, title: 'Output Properties', color: 'text-white' },
+    { id: 'view_layer', icon: Layers, title: 'View Layer Properties', color: 'text-white' },
+    { id: 'scene', icon: Droplets, title: 'Scene Properties', color: 'text-white' },
+    { id: 'world', icon: Globe, title: 'World Properties', color: 'text-white' },
+    
+    // Object Group (Orange)
+    { id: 'object', icon: Box, title: 'Object Properties', color: 'text-orange-400' },
+    
+    // Advanced Modifiers/Physics Group (Blue)
+    { id: 'modifiers', icon: Wrench, title: 'Modifier Properties', color: 'text-blue-400' },
+    { id: 'particles', icon: Share2, title: 'Particle Properties', color: 'text-blue-400' },
+    { id: 'physics', icon: Activity, title: 'Physics Properties', color: 'text-blue-400' },
+    
+    // Constraints & Data Group (Green)
+    { id: 'constraints', icon: Link, title: 'Object Constraint Properties', color: 'text-green-400' },
+    { id: 'data', icon: Triangle, title: 'Object Data Properties', color: 'text-green-400' },
+    
+    // Shading Group (Red)
+    { id: 'material', icon: Circle, title: 'Material Properties', color: 'text-red-400', hide: activeObject?.category !== 'mesh' && activeObject?.category !== 'cube' },
+    { id: 'texture', icon: Grid, title: 'Texture Properties', color: 'text-red-400', hide: activeObject?.category !== 'mesh' && activeObject?.category !== 'cube' }
   ];
 
-  const handleTransformChange = (axis, type, value) => {
-    if (!activeObject) return;
-    const num = parseFloat(value);
-    if (isNaN(num)) return;
-
-    const newArr = [...activeObject[type]];
-    newArr[axis] = num;
-    updateObject(activeId, { [type]: newArr });
-  };
+  const renderPlaceholder = (title) => (
+    <div className="flex flex-col items-center justify-center h-full text-[#888] gap-2">
+      <span className="font-semibold text-[#a4a4a4]">{title}</span>
+      <span className="text-xs text-[#666]">(Not implemented yet)</span>
+    </div>
+  );
 
   return (
     <div className="flex h-full bg-[#282828] text-[#cccccc] text-xs font-sans border-t border-[#1d1d1d]">
       
-      {/* Icon Tabs (Vertical) */}
-      <div className="w-[40px] flex flex-col items-center bg-[#282828] border-r border-[#1d1d1d] py-2 gap-2">
+      {/* Icon Tabs (Vertical Sidebar) */}
+      <div className="w-[36px] flex flex-col items-center bg-[#282828] border-r border-[#1d1d1d] py-1 gap-1 overflow-y-auto overflow-x-hidden no-scrollbar">
         {tabs.map((tab) => {
+          if (tab.hide) return null;
+          
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
             <div 
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`p-1.5 rounded cursor-pointer ${isActive ? 'bg-[#4772b3] text-white' : 'text-[#a4a4a4] hover:bg-[#383838]'}`}
+              className={`
+                p-1.5 rounded cursor-pointer transition-colors w-[28px] h-[28px] flex items-center justify-center
+                ${isActive ? 'bg-[#4772b3] ' + tab.color : 'text-[#a4a4a4] hover:bg-[#383838]'}
+              `}
               title={tab.title}
             >
-              <Icon size={16} />
+              <Icon size={16} strokeWidth={1.5} />
             </div>
           );
         })}
       </div>
 
       {/* Panel Content */}
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="flex-1 overflow-y-auto p-3 bg-[#2d2d2d]">
         
         {/* TOOL TAB */}
         {activeTab === 'tool' && (
@@ -91,88 +121,36 @@ export default function PropertiesPanel() {
           </div>
         )}
 
-        {/* OBJECT TAB */}
-        {activeTab === 'object' && activeObject && (
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2 mb-2 font-semibold text-[13px] border-b border-[#1d1d1d] pb-2">
-              <Box size={16} />
-              <span>{activeObject.name || activeObject.id}</span>
-            </div>
-
-            {/* Transform */}
-            <div className="bg-[#303030] rounded border border-[#1d1d1d]">
-              <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d]">Transform</div>
-              <div className="p-3 flex flex-col gap-3">
-                {/* Location */}
-                <div className="flex items-center gap-2">
-                  <span className="w-14">Location</span>
-                  <div className="flex flex-col gap-1 flex-1">
-                    {['X', 'Y', 'Z'].map((axis, i) => (
-                      <div key={axis} className="flex relative items-center rounded overflow-hidden">
-                        <div className={`absolute left-0 w-1 h-full ${axis === 'X' ? 'bg-red-500' : axis === 'Y' ? 'bg-green-500' : 'bg-blue-500'}`} />
-                        <span className="absolute left-2 text-[#888] font-mono">{axis}</span>
-                        <input 
-                          type="number" 
-                          step="0.1"
-                          className="w-full bg-[#1d1d1d] text-white pl-6 pr-2 py-1 outline-none font-mono text-right" 
-                          value={activeObject.position[i].toFixed(3)}
-                          onChange={(e) => handleTransformChange(i, 'position', e.target.value)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Rotation */}
-                <div className="flex items-center gap-2">
-                  <span className="w-14">Rotation</span>
-                  <div className="flex flex-col gap-1 flex-1">
-                    {['X', 'Y', 'Z'].map((axis, i) => (
-                      <div key={axis} className="flex relative items-center rounded overflow-hidden">
-                        <div className={`absolute left-0 w-1 h-full ${axis === 'X' ? 'bg-red-500' : axis === 'Y' ? 'bg-green-500' : 'bg-blue-500'}`} />
-                        <span className="absolute left-2 text-[#888] font-mono">{axis}</span>
-                        <input 
-                          type="number" 
-                          step="0.1"
-                          className="w-full bg-[#1d1d1d] text-white pl-6 pr-2 py-1 outline-none font-mono text-right" 
-                          value={(activeObject.rotation[i] * (180 / Math.PI)).toFixed(1)}
-                          onChange={(e) => handleTransformChange(i, 'rotation', (parseFloat(e.target.value) * (Math.PI / 180)))}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Scale */}
-                <div className="flex items-center gap-2">
-                  <span className="w-14">Scale</span>
-                  <div className="flex flex-col gap-1 flex-1">
-                    {['X', 'Y', 'Z'].map((axis, i) => (
-                      <div key={axis} className="flex relative items-center rounded overflow-hidden">
-                        <div className={`absolute left-0 w-1 h-full ${axis === 'X' ? 'bg-red-500' : axis === 'Y' ? 'bg-green-500' : 'bg-blue-500'}`} />
-                        <span className="absolute left-2 text-[#888] font-mono">{axis}</span>
-                        <input 
-                          type="number" 
-                          step="0.1"
-                          className="w-full bg-[#1d1d1d] text-white pl-6 pr-2 py-1 outline-none font-mono text-right" 
-                          value={activeObject.scale[i].toFixed(3)}
-                          onChange={(e) => handleTransformChange(i, 'scale', e.target.value)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* EMPTY STATE */}
-        {activeTab === 'object' && !activeObject && (
+        {/* EMPTY STATE IF NO OBJECT FOR OBJECT TABS */}
+        {['object', 'data', 'material', 'texture', 'modifiers', 'particles', 'physics', 'constraints'].includes(activeTab) && !activeObject && (
           <div className="flex items-center justify-center h-full text-[#888]">
             No object selected
           </div>
         )}
+
+        {/* ACTIVE OBJECT TABS */}
+        {activeObject && (
+          <>
+            {activeTab === 'object' && <ObjectProperties activeObject={activeObject} />}
+            {activeTab === 'data' && <DataProperties activeObject={activeObject} />}
+            {activeTab === 'material' && <MaterialProperties activeObject={activeObject} />}
+            
+            {/* PLACEHOLDERS */}
+            {activeTab === 'modifiers' && renderPlaceholder('Modifier Properties')}
+            {activeTab === 'particles' && renderPlaceholder('Particle Properties')}
+            {activeTab === 'physics' && renderPlaceholder('Physics Properties')}
+            {activeTab === 'constraints' && renderPlaceholder('Object Constraint Properties')}
+            {activeTab === 'texture' && renderPlaceholder('Texture Properties')}
+          </>
+        )}
+
+        {/* WORLD / SCENE PLACEHOLDERS */}
+        {activeTab === 'render' && renderPlaceholder('Render Properties')}
+        {activeTab === 'output' && renderPlaceholder('Output Properties')}
+        {activeTab === 'view_layer' && renderPlaceholder('View Layer Properties')}
+        {activeTab === 'scene' && renderPlaceholder('Scene Properties')}
+        {activeTab === 'world' && renderPlaceholder('World Properties')}
+
       </div>
     </div>
   );

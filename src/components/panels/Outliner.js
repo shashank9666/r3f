@@ -287,7 +287,7 @@ export default function Outliner() {
             className="cursor-pointer text-[#888] hover:text-white flex items-center bg-[#404040] hover:bg-[#555] rounded px-1.5 py-0.5 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
-              addCollection("Collection", activeCollectionId);
+              addCollection("Collection", 'root');
             }}
           >
             <Archive size={12} className="mr-1" />+

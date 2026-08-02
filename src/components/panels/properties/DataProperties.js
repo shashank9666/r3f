@@ -1,0 +1,113 @@
+"use client";
+
+import React from 'react';
+import { useStore } from '../../../store/useStore';
+import { Lightbulb, Camera, Triangle } from 'lucide-react';
+
+export default function DataProperties({ activeObject }) {
+  const updateObject = useStore(state => state.updateObject);
+
+  if (!activeObject) return null;
+
+  const handlePropertyChange = (key, value) => {
+    const props = activeObject.properties || {};
+    updateObject(activeObject.id, { properties: { ...props, [key]: value } });
+  };
+
+  const props = activeObject.properties || {};
+
+  // RENDER LIGHT DATA
+  if (activeObject.category === 'light') {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2 mb-2 font-semibold text-[13px] border-b border-[#1d1d1d] pb-2 text-green-400">
+          <Lightbulb size={16} />
+          <span>Light Data</span>
+        </div>
+
+        <div className="bg-[#303030] rounded border border-[#1d1d1d]">
+          <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d]">Settings</div>
+          <div className="p-3 flex flex-col gap-3">
+            
+            <div className="flex items-center justify-between">
+              <span className="text-[#a4a4a4]">Distance (Radius)</span>
+              <input 
+                type="number" 
+                step="1"
+                className="w-24 bg-[#1d1d1d] text-white px-2 py-1 outline-none text-xs text-right rounded" 
+                value={props.distance !== undefined ? props.distance : 50}
+                onChange={(e) => handlePropertyChange('distance', parseFloat(e.target.value))}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-[#a4a4a4]">Color</span>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="color" 
+                  value={activeObject.color || '#ffffff'} 
+                  onChange={(e) => updateObject(activeObject.id, { color: e.target.value })}
+                  className="w-16 h-6 p-0 border-0 rounded cursor-pointer"
+                />
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // RENDER CAMERA DATA
+  if (activeObject.category === 'camera') {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2 mb-2 font-semibold text-[13px] border-b border-[#1d1d1d] pb-2 text-green-400">
+          <Camera size={16} />
+          <span>Camera Data</span>
+        </div>
+
+        <div className="bg-[#303030] rounded border border-[#1d1d1d]">
+          <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d]">Lens</div>
+          <div className="p-3 flex flex-col gap-3">
+            
+            <div className="flex items-center justify-between">
+              <span className="text-[#a4a4a4]">FOV</span>
+              <input 
+                type="number" 
+                step="1"
+                className="w-24 bg-[#1d1d1d] text-white px-2 py-1 outline-none text-xs text-right rounded" 
+                value={props.fov !== undefined ? props.fov : 45}
+                onChange={(e) => handlePropertyChange('fov', parseFloat(e.target.value))}
+              />
+            </div>
+
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // RENDER MESH DATA
+  if (activeObject.category === 'mesh' || activeObject.category === 'cube') {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2 mb-2 font-semibold text-[13px] border-b border-[#1d1d1d] pb-2 text-green-400">
+          <Triangle size={16} />
+          <span>Object Data</span>
+        </div>
+
+        <div className="bg-[#303030] rounded border border-[#1d1d1d]">
+          <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d]">Geometry</div>
+          <div className="p-3 flex flex-col gap-3 text-[#a4a4a4] text-xs">
+            Type: {activeObject.type}
+            <br />
+            (Parametric editing coming soon)
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}

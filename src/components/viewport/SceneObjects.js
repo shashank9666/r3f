@@ -100,15 +100,15 @@ export default function SceneObjects() {
     }
   };
 
-  const renderLight = (type, color) => {
+  const renderLight = (type, color, distance = 50) => {
     switch(type) {
       case 'AmbientLight': return <ambientLight intensity={1} color={color} />;
       case 'DirectionalLight': return <directionalLight intensity={2} color={color} castShadow />;
-      case 'PointLight': return <pointLight intensity={10} distance={50} color={color} castShadow />;
-      case 'SpotLight': return <spotLight intensity={10} distance={50} angle={Math.PI/6} color={color} castShadow />;
+      case 'PointLight': return <pointLight intensity={10} distance={distance} color={color} castShadow />;
+      case 'SpotLight': return <spotLight intensity={10} distance={distance} angle={Math.PI/6} color={color} castShadow />;
       case 'HemisphereLight': return <hemisphereLight intensity={1} color={color} groundColor="#444444" />;
       case 'RectAreaLight': return <rectAreaLight intensity={10} width={2} height={2} color={color} />;
-      default: return <pointLight intensity={10} color={color} />;
+      default: return <pointLight intensity={10} distance={distance} color={color} />;
     }
   };
 
@@ -155,6 +155,7 @@ export default function SceneObjects() {
         </mesh>
       );
     } else if (obj.category === 'light') {
+      const distance = obj.properties?.distance || 5; // Default distance
       return (
         <mesh onPointerDown={(e) => handlePointerDown(e, obj.id)}>
           <sphereGeometry args={[0.3, 8, 8]} />
@@ -162,7 +163,19 @@ export default function SceneObjects() {
             color={isSelected ? "#ffaa00" : obj.color} 
             wireframe={true} 
           />
-          {renderLight(obj.type, obj.color)}
+          {isSelected && (
+            <group>
+              <mesh rotation={[Math.PI / 2, 0, 0]}>
+                <ringGeometry args={[distance, distance + 0.05, 64]} />
+                <meshBasicMaterial color="#ffffff" side={2} transparent opacity={0.3} depthTest={false} />
+              </mesh>
+              <mesh>
+                <ringGeometry args={[distance, distance + 0.05, 64]} />
+                <meshBasicMaterial color="#ffffff" side={2} transparent opacity={0.3} depthTest={false} />
+              </mesh>
+            </group>
+          )}
+          {renderLight(obj.type, obj.color, distance)}
         </mesh>
       );
     } else if (obj.category === 'camera') {
