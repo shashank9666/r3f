@@ -98,26 +98,14 @@ export const MODIFIERS = [
     ],
   },
   {
-    id: 'maskConsumer',
-    label: 'Masked By Stencil',
-    params: [
-      int('maskId', 'Mask ID', 1, 1, 16),
-      bool('invert', 'Invert', false),
-    ],
-  },
-  {
     id: 'helper',
     label: 'Helper',
+    scope: 'child',
     params: [
-      select('helperType', 'Type', 'box', ['box', 'axes', 'boxOriented', 'grid']),
+      select('helperType', 'Type', 'box', ['box', 'axes', 'grid', 'boxHelper']),
       color('color', 'Color', '#ffff00'),
       num('size', 'Size', 1, 0.1, 20, 0.1),
     ],
-  },
-  {
-    id: 'detailedCull',
-    label: 'Fast Raycast (meshBounds)',
-    params: [],
   },
 ];
 
