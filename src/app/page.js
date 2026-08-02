@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import SplashScreen from "../components/SplashScreen";
 import AppLayout from "@/components/layout/AppLayout";
 import AppMenu from "../components/AppMenu";
-import StatusBar from "../components/StatusBar";
 import { useStore } from "../store/useStore";
 
 const Viewport = dynamic(() => import("../components/viewport/Viewport"), {
@@ -25,10 +24,7 @@ export default function Home() {
           <Viewport />
         </AppLayout>
       </div>
-      
-      {/* Bottom Status Bar */}
-      <StatusBar />
-      
+
       {/* Overlay Splash Screen Layer */}
       {showSplash && (
         <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">

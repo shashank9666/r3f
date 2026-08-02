@@ -1,15 +1,44 @@
 /* eslint-disable */
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, useRef, useState } from 'react';
 import { useStore } from '../../store/useStore';
-import { TransformControls } from '@react-three/drei';
+import { TransformControls, Select } from '@react-three/drei';
 import * as THREE from 'three';
 import ModalTransformHandler from './ModalTransformHandler';
-import TransformProxy from './TransformProxy';
+import { wrapWithModifiers, ModifierChildren } from './drei/Modifiers';
+
+/**
+ * Keeps one broken object (bad URL, failed decode, unsupported file) from taking
+ * down the whole canvas. Falls back to a wireframe marker.
+ */
+class ObjectErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { failed: false };
+  }
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidUpdate(prevProps) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.failed) {
+      this.setState({ failed: false });
+    }
+  }
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return (
+      <mesh>
+        <boxGeometry args={[0.6, 0.6, 0.6]} />
+        <meshBasicMaterial color="#ff4444" wireframe />
+      </mesh>
+    );
+  }
+}
 
 function SceneObjectItem({ obj, isSelected, isActive, isVisible, transformState, updateObject, renderObjectBody, objectRefs, selectedIds }) {
   const [groupEl, setGroupEl] = useState(null);
+  const resetKey = JSON.stringify(obj.params || {});
 
   return (
     <React.Fragment>
@@ -25,7 +54,15 @@ function SceneObjectItem({ obj, isSelected, isActive, isVisible, transformState,
         rotation={obj.rotation}
         scale={obj.scale}
       >
-        {renderObjectBody(obj, isSelected)}
+        {/* `Select` feeds the post-processing Outline / SelectiveBloom passes */}
+        <Select enabled={isSelected}>
+          <ObjectErrorBoundary resetKey={resetKey}>
+            <Suspense fallback={null}>
+              {wrapWithModifiers(obj.modifiers, renderObjectBody(obj, isSelected))}
+            </Suspense>
+          </ObjectErrorBoundary>
+        </Select>
+        <ModifierChildren modifiers={obj.modifiers} />
       </group>
 
       {isVisible && isActive && transformState.mode !== 'idle' && groupEl && selectedIds.length <= 1 && (
@@ -157,36 +194,22 @@ export default function SceneObjects() {
     }
   };
 
-  const renderMaterial = (obj, isSelected) => {
-    const emissiveProps = {
-      emissive: isSelected ? "#ffaa00" : "#000000",
-      emissiveIntensity: isSelected ? 0.2 : 0
-    };
-
-    if (viewportShading === 'wireframe') {
-      return <meshBasicMaterial color={obj.color} wireframe={true} />;
-    }
-    
-    if (viewportShading === 'solid') {
-      return <meshLambertMaterial color="#cccccc" {...emissiveProps} />;
-    }
-
-    switch (obj.materialType) {
-      case 'basic': 
-        return <meshBasicMaterial color={obj.color} wireframe={false} />;
-      case 'physical': 
-        return <meshPhysicalMaterial color={obj.color} roughness={obj.roughness !== undefined ? obj.roughness : 0.5} metalness={obj.metalness !== undefined ? obj.metalness : 0.0} clearcoat={1} {...emissiveProps} />;
-      case 'phong': 
-        return <meshPhongMaterial color={obj.color} shininess={30} {...emissiveProps} />;
-      case 'lambert': 
-        return <meshLambertMaterial color={obj.color} {...emissiveProps} />;
-      case 'standard':
-      default: 
-        return <meshStandardMaterial color={obj.color} roughness={obj.roughness !== undefined ? obj.roughness : 0.5} metalness={obj.metalness !== undefined ? obj.metalness : 0.0} {...emissiveProps} />;
-    }
-  };
+  const renderMaterial = (obj, isSelected) => (
+    <DreiMaterial obj={obj} isSelected={isSelected} viewportShading={viewportShading} />
+  );
 
   const renderObjectBody = (obj, isSelected) => {
+    // Anything in the drei catalog renders through the catalog-driven renderer
+    if (isDreiObject(obj.type)) {
+      return (
+        <DreiObject
+          obj={obj}
+          isSelected={isSelected}
+          onPointerDown={(e) => handlePointerDown(e, obj.id)}
+        />
+      );
+    }
+
     if (obj.category === 'mesh' || obj.type === 'cube') {
       const castsShadow = viewportShading === 'rendered';
       return (
