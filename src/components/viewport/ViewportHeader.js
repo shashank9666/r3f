@@ -1,49 +1,16 @@
 "use client";
 
-import { useStore } from "../store/useStore";
-import { USDZExporter } from "three-stdlib";
-import AddMenu from "./AddMenu";
-import { Box, Link, Magnet, Target, Circle, Globe, Sun, Settings } from 'lucide-react';
+import { useStore } from "../../store/useStore";
+import AddMenu from "../AddMenu";
+import { Box, Link, Magnet, Target, Settings } from 'lucide-react';
+import ViewportShadingMenu from './ViewportNavigation/ViewportShadingMenu';
 
-export default function TopMenu() {
-  const scene = useStore((state) => state.scene);
-
-  const handleExportUSDZ = async () => {
-    if (!scene) {
-      alert("Scene not loaded yet!");
-      return;
-    }
-    
-    try {
-      const exporter = new USDZExporter();
-      // USDZExporter parse returns a Promise that resolves to an ArrayBuffer
-      const arrayBuffer = await exporter.parse(scene);
-      
-      const blob = new Blob([arrayBuffer], { type: "application/octet-stream" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.style.display = "none";
-      link.href = url;
-      link.download = "scene.usdz";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Failed to export USDZ:", error);
-      alert("Failed to export scene.");
-    }
-  };
-
+export default function ViewportHeader() {
   return (
-    <div className="absolute top-0 left-0 w-full h-10 bg-[#282828] border-b border-black/30 flex items-center px-4 z-40 text-[#cccccc] text-[13px] font-sans shadow-sm select-none justify-between">
+    <div className="w-full h-[32px] flex-shrink-0 bg-[#303030] border-b border-[#1d1d1d] flex items-center px-2 z-20 text-[#cccccc] text-[13px] font-sans shadow-sm select-none justify-between">
       
       {/* Left side menus */}
       <div className="flex gap-1 items-center text-[#e5e5e5]">
-        {/* Fake Blender Logo */}
-        <div className="px-3 hover:text-white cursor-default">
-          <Box size={16} />
-        </div>
 
         {/* Object Mode Dropdown */}
         <div className="flex items-center gap-2 hover:bg-[#404040] px-2 py-1 rounded cursor-default mr-2 transition-colors">
@@ -98,13 +65,7 @@ export default function TopMenu() {
       {/* Right side (Viewport Shading & File Export) */}
       <div className="flex gap-3 items-center text-[#e5e5e5]">
         
-        {/* Viewport Shading Icons */}
-        <div className="flex items-center gap-1">
-          <div className="p-1 hover:bg-[#404040] rounded opacity-50 cursor-pointer"><Circle size={16} /></div> {/* Wireframe */}
-          <div className="p-1 hover:bg-[#404040] rounded opacity-100 cursor-pointer"><Circle size={16} fill="currentColor" /></div> {/* Solid */}
-          <div className="p-1 hover:bg-[#404040] rounded opacity-50 cursor-pointer"><Globe size={16} /></div> {/* Material Preview */}
-          <div className="p-1 hover:bg-[#404040] rounded opacity-50 cursor-pointer"><Sun size={16} /></div> {/* Rendered */}
-        </div>
+        <ViewportShadingMenu />
 
         {/* Options */}
         <div className="flex items-center gap-1 hover:bg-[#404040] px-2 py-1 rounded cursor-default transition-colors border-l border-[#404040] pl-3 ml-1">
@@ -114,18 +75,6 @@ export default function TopMenu() {
           </svg>
         </div>
 
-        {/* File Export (Kept for our tool) */}
-        <div className="relative group cursor-default border-l border-[#404040] pl-3 ml-1">
-          <span className="px-2 py-1 hover:bg-[#404040] rounded transition-colors block">File</span>
-          <div className="absolute right-0 top-full hidden group-hover:block bg-[#333333] border border-black/30 rounded shadow-2xl min-w-[150px] py-1 mt-1 z-50">
-            <div 
-              className="px-4 py-1.5 hover:bg-[#4772b3] hover:text-white cursor-pointer transition-colors"
-              onClick={handleExportUSDZ}
-            >
-              Export .usdz
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

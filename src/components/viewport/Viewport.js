@@ -14,6 +14,7 @@ import ViewportHotkeys from "./ViewportHotkeys";
 import BoxSelectionTool from './ViewportNavigation/BoxSelectionTool';
 import ViewportContextMenu from './ViewportContextMenu';
 import ViewportShadingMenu from './ViewportNavigation/ViewportShadingMenu';
+import ViewportHeader from './ViewportHeader';
 
 function SceneRegister() {
   const { scene, camera } = useThree();
@@ -66,12 +67,7 @@ export default function Viewport() {
     <div className="relative w-full h-full flex flex-col bg-[#282828] select-none overflow-hidden">
       
       {/* Viewport Header */}
-      <div className="h-[32px] w-full flex-shrink-0 bg-[#303030] flex items-center justify-between px-2 border-b border-[#1d1d1d] z-20 shadow-sm">
-        <div className="flex items-center gap-2 text-[#a4a4a4] text-xs font-semibold px-2">
-          Object Mode
-        </div>
-        <ViewportShadingMenu />
-      </div>
+      <ViewportHeader />
 
       <div className="flex-1 relative w-full h-full overflow-hidden">
         <NavigationToolbar />
