@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
-import { Wrench, Box, Camera, Globe, Monitor, SquareDashed, MousePointer2 } from 'lucide-react';
+import { Wrench, Box, Camera, Globe, Monitor, Square, MousePointer } from 'lucide-react';
 
 export default function PropertiesPanel() {
   const [activeTab, setActiveTab] = useState('tool');
@@ -58,7 +58,7 @@ export default function PropertiesPanel() {
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2 mb-2 font-semibold text-[13px] border-b border-[#1d1d1d] pb-2">
               <span className="flex items-center gap-2">
-                {activeTool === 'box-select' ? <SquareDashed size={16} className="text-[#a4a4a4]" /> : <MousePointer2 size={16} className="text-[#a4a4a4]" />}
+                {activeTool === 'box-select' ? <Square size={16} className="text-[#a4a4a4]" /> : <MousePointer size={16} className="text-[#a4a4a4]" />}
                 {activeTool === 'box-select' ? 'Select Box' : 'Select'}
               </span>
             </div>

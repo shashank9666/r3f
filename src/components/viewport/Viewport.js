@@ -85,7 +85,16 @@ export default function Viewport() {
         {isWalking ? (
           <FlyControls ref={controlsRef} makeDefault movementSpeed={movementSpeed} rollSpeed={0.5} dragToLook={false} />
         ) : (
-          <OrbitControls ref={controlsRef} makeDefault enabled={activeTool === 'select'} />
+          <OrbitControls 
+            ref={controlsRef} 
+            makeDefault 
+            enabled={activeTool !== 'box-select'} 
+            mouseButtons={{
+              LEFT: activeTool === 'pan' ? 2 : activeTool === 'zoom' ? 1 : 0, // 0: ROTATE, 2: PAN, 1: DOLLY
+              MIDDLE: 1, // DOLLY
+              RIGHT: 2 // PAN
+            }}
+          />
         )}
 
         {/* Basic lighting */}
