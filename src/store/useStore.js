@@ -123,6 +123,38 @@ export const useStore = create(
 
   // --- Interaction Engine State ---
 
+  // Collections System
+  collections: [
+    { id: 'root', name: 'Scene Collection', visible: true, renderable: true, isExpanded: true, parentId: null }
+  ],
+  activeCollectionId: 'root',
+  
+  setCollections: (collections) => set({ collections }),
+  addCollection: (name, parentId = 'root') => set((state) => {
+    const newId = `col-${Date.now()}`;
+    const newCollection = { id: newId, name, visible: true, renderable: true, isExpanded: true, parentId };
+    return { collections: [...state.collections, newCollection], activeCollectionId: newId };
+  }),
+  updateCollection: (id, updates) => set((state) => ({
+    collections: state.collections.map(col => col.id === id ? { ...col, ...updates } : col)
+  })),
+  deleteCollection: (id) => set((state) => {
+    if (id === 'root') return state; // Cannot delete root
+    // Move all children (objects and collections) to root
+    const newCollections = state.collections.filter(c => c.id !== id).map(c => 
+      c.parentId === id ? { ...c, parentId: 'root' } : c
+    );
+    const newObjects = state.objects.map(o => 
+      o.collectionId === id ? { ...o, collectionId: 'root' } : o
+    );
+    return { 
+      collections: newCollections, 
+      objects: newObjects,
+      activeCollectionId: state.activeCollectionId === id ? 'root' : state.activeCollectionId
+    };
+  }),
+  setActiveCollectionId: (id) => set({ activeCollectionId: id }),
+
   // Scene Graph
   objects: [],
   setObjects: (objects) => set({ objects }),
@@ -135,6 +167,7 @@ export const useStore = create(
       id: newId,
       type,
       category,
+      collectionId: state.activeCollectionId || 'root',
       position: [0, 1, 0],
       rotation: [0, 0, 0],
       scale: [1, 1, 1],

@@ -18,6 +18,7 @@ export default function ViewportHotkeys() {
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [addMenuPosition, setAddMenuPosition] = useState({ x: 0, y: 0 });
   const [showRenameDialog, setShowRenameDialog] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = async (e) => {
@@ -38,10 +39,11 @@ export default function ViewportHotkeys() {
         useStore.getState().setActiveTool('box-select');
       }
       
+      const currentTransformState = useStore.getState().transformState;
       // X or Delete: Delete Objects
-      if (key === 'x' || e.key === 'Delete') {
+      if ((key === 'x' || e.key === 'Delete') && !currentTransformState.active) {
         if (selectedIds.length > 0) {
-          deleteObjects(selectedIds);
+          setShowDeleteConfirm(true);
         }
       }
       
@@ -194,6 +196,32 @@ export default function ViewportHotkeys() {
           activeId={activeId} 
           onClose={() => setShowRenameDialog(false)} 
         />
+      )}
+      {showDeleteConfirm && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#282828] border border-[#3d3d3d] rounded-lg p-5 w-80 shadow-2xl flex flex-col items-center">
+            <div className="text-white text-lg font-medium mb-2">Delete Object(s)?</div>
+            <div className="text-[#a4a4a4] text-sm text-center mb-6">Are you sure you want to delete the {selectedIds.length} selected object(s)? This cannot be easily undone.</div>
+            
+            <div className="flex justify-end gap-3 w-full">
+              <button 
+                className="flex-1 px-4 py-2 bg-[#3a3a3a] text-white rounded hover:bg-[#4a4a4a] text-sm font-medium transition-colors"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="flex-1 px-4 py-2 bg-[#e53935] text-white rounded hover:bg-[#ff5252] text-sm font-medium transition-colors"
+                onClick={() => {
+                  deleteObjects(selectedIds);
+                  setShowDeleteConfirm(false);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
