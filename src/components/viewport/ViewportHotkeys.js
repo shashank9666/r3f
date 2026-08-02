@@ -109,9 +109,28 @@ export default function ViewportHotkeys() {
       
       // R / S : Rotate / Scale
       if (key === 'r' && !e.altKey && !transformState.active) {
-        setTransformState({ mode: 'rotate', axisConstraint: null });
+        if (selectedIds.length > 0) {
+          setTransformState({ active: true, mode: 'rotate', axisConstraint: null });
+        }
       } else if (key === 's' && !e.altKey && !transformState.active) {
-        setTransformState({ mode: 'scale', axisConstraint: null });
+        if (selectedIds.length > 0) {
+          setTransformState({ active: true, mode: 'scale', axisConstraint: null });
+        }
+      }
+      
+      // A: Select All, Alt+A: Deselect All
+      if (key === 'a' && !e.ctrlKey && !e.shiftKey) {
+        if (e.altKey) {
+          useStore.getState().setSelectedIds([]);
+        } else {
+          // If all are already selected, deselect all (Blender toggle behavior)
+          const allSelected = objects.length > 0 && selectedIds.length === objects.length;
+          if (allSelected) {
+            useStore.getState().setSelectedIds([]);
+          } else {
+            useStore.getState().setSelectedIds(objects.map(o => o.id));
+          }
+        }
       } 
       
       // X / Y / Z: Axis Constraints for modal transform
@@ -176,6 +195,8 @@ export default function ViewportHotkeys() {
         } catch (err) {
           // Normal paste, ignore
         }
+      }
+      
       // Ctrl + Z: Undo, Ctrl + Shift + Z: Redo
       if (key === 'z' && e.ctrlKey) {
         e.preventDefault();
