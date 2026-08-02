@@ -7,6 +7,10 @@ import AppMenu from "../components/AppMenu";
 import { useStore } from "../store/useStore";
 
 if (typeof window !== 'undefined') {
+  if (window.location.search.includes('reset=true')) {
+    localStorage.clear();
+    window.location.href = window.location.pathname;
+  }
   const originalWarn = console.warn;
   console.warn = (...args) => {
     if (typeof args[0] === 'string' && args[0].includes('THREE.Clock')) return;

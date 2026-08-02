@@ -9,6 +9,7 @@
  */
 
 import React, { useMemo, useRef } from 'react';
+import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
   EffectComposer, Bloom, SelectiveBloom, Outline, DepthOfField, TiltShift2,
@@ -16,7 +17,7 @@ import {
   HueSaturation, ColorAverage, ColorDepth, Sepia, DotScreen, Grid, Scanline,
   Noise, ASCII, Pixelation, Depth, Vignette, ToneMapping, SMAA, FXAA, SSAO, N8AO,
 } from '@react-three/postprocessing';
-import { GlitchMode, BlendFunction, ToneMappingMode, KernelSize } from 'postprocessing';
+import { GlitchMode, BlendFunction, ToneMappingMode, KernelSize, GodRaysEffect } from 'postprocessing';
 import { EFFECTS } from '../../../lib/drei/effectCatalog';
 import { resolveParams } from '../../../lib/drei/params';
 import { useStore } from '../../../store/useStore';
@@ -39,25 +40,29 @@ const GLITCH_MODES = [GlitchMode.DISABLED, GlitchMode.SPORADIC, GlitchMode.CONST
 function GodRaysPass({ p }) {
   const sunRef = useRef();
   const [sun, setSun] = React.useState(null);
+  const { camera } = useThree();
+  
+  const effect = useMemo(() => {
+    if (!sun) return null;
+    return new GodRaysEffect(camera, sun, {
+      density: p.density,
+      decay: p.decay,
+      weight: p.weight,
+      exposure: p.exposure,
+      clampMax: p.clampMax,
+      samples: p.samples,
+      blendFunction: BlendFunction.SCREEN,
+      kernelSize: KernelSize.SMALL
+    });
+  }, [camera, sun, p.density, p.decay, p.weight, p.exposure, p.clampMax, p.samples]);
+
   return (
     <>
       <mesh ref={(el) => { sunRef.current = el; if (el && el !== sun) setSun(el); }} position={p.sunPosition}>
         <sphereGeometry args={[p.sunRadius, 32, 32]} />
-        <meshBasicMaterial color={p.sunColor} toneMapped={false} />
+        <meshBasicMaterial color={p.sunColor} transparent opacity={0.1} />
       </mesh>
-      {sun && (
-        <GodRays
-          sun={sun}
-          density={p.density}
-          decay={p.decay}
-          weight={p.weight}
-          exposure={p.exposure}
-          clampMax={p.clampMax}
-          samples={p.samples}
-          blendFunction={BlendFunction.SCREEN}
-          kernelSize={KernelSize.SMALL}
-        />
-      )}
+      {effect && <primitive object={effect} dispose={null} />}
     </>
   );
 }
