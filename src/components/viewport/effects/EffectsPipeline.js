@@ -128,7 +128,14 @@ function Pass({ id, p }) {
         />
       );
     case 'dof':
-      return <DepthOfField focusDistance={p.focusDistance} focalLength={p.focalLength} bokehScale={p.bokehScale} />;
+      return (
+        <DepthOfField 
+          focusDistance={p.useTarget ? undefined : p.focusDistance} 
+          target={p.useTarget ? p.target : undefined}
+          focalLength={p.focalLength} 
+          bokehScale={p.bokehScale} 
+        />
+      );
     case 'tiltShift':
       return (
         <TiltShift2

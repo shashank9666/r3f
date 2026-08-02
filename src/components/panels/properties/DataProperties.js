@@ -116,6 +116,26 @@ export default function DataProperties({ activeObject }) {
                 onChange={(e) => handlePropertyChange('fov', parseFloat(e.target.value))}
               />
             </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[#a4a4a4]">Clip Near</span>
+              <input 
+                type="number" 
+                step="0.1"
+                className="w-24 bg-[#1d1d1d] text-white px-2 py-1 outline-none text-xs text-right rounded" 
+                value={props.near !== undefined ? props.near : 0.1}
+                onChange={(e) => handlePropertyChange('near', parseFloat(e.target.value))}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[#a4a4a4]">Clip Far</span>
+              <input 
+                type="number" 
+                step="10"
+                className="w-24 bg-[#1d1d1d] text-white px-2 py-1 outline-none text-xs text-right rounded" 
+                value={props.far !== undefined ? props.far : 1000}
+                onChange={(e) => handlePropertyChange('far', parseFloat(e.target.value))}
+              />
+            </div>
 
           </div>
         </div>

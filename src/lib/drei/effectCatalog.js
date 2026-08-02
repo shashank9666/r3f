@@ -74,7 +74,9 @@ export const EFFECTS = [
     id: 'dof',
     label: 'Depth of Field',
     params: [
-      num('focusDistance', 'Focus Distance', 0, 0, 1, 0.001),
+      bool('useTarget', 'Use Target (Auto Focus)', true),
+      vec3('target', 'Target Position', [0, 0, 0]),
+      num('focusDistance', 'Focus Dist (if not target)', 0, 0, 1, 0.001),
       num('focalLength', 'Focal Length', 0.02, 0, 1, 0.001),
       num('bokehScale', 'Bokeh Scale', 2, 0, 20, 0.1),
     ],
