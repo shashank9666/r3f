@@ -266,6 +266,32 @@ export default function Outliner() {
           <Box size={14} />
           <span>Outliner</span>
         </div>
+        <div className="flex items-center gap-2">
+          <div 
+            title="Add New Collection" 
+            className="cursor-pointer text-[#888] hover:text-white flex items-center bg-[#404040] hover:bg-[#555] rounded px-1.5 py-0.5 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              addCollection("Collection", activeCollectionId);
+            }}
+          >
+            <Archive size={12} className="mr-1" />+
+          </div>
+          <div 
+            title="Delete Selected Collection/Object" 
+            className="cursor-pointer text-[#888] hover:text-[#ff4444] flex items-center bg-[#404040] hover:bg-[#555] rounded px-1.5 py-0.5 transition-colors ml-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (activeCollectionId && activeCollectionId !== 'root') {
+                deleteCollection(activeCollectionId);
+              } else if (selectedIds.length > 0) {
+                useStore.getState().deleteObjects(selectedIds);
+              }
+            }}
+          >
+            Delete
+          </div>
+        </div>
       </div>
 
       {/* List */}
@@ -291,11 +317,9 @@ export default function Outliner() {
               <div 
                 className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer"
                 onClick={() => {
-                  const name = window.prompt("Subcollection Name:", "New Collection");
-                  if (name) addCollection(name, contextMenu.item.id);
-                  closeContextMenu();
-                }}
-              >
+                  addCollection("Collection", contextMenu.item.id);
+                  setContextMenu(null);
+                }}>
                 New
               </div>
               <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer opacity-50">Duplicate Collection</div>
@@ -315,9 +339,7 @@ export default function Outliner() {
                   <div 
                     className="px-6 py-1 hover:bg-[#e53935] cursor-pointer flex justify-between"
                     onClick={() => {
-                      if (window.confirm("Delete collection? Contents will be moved to root.")) {
-                        deleteCollection(contextMenu.item.id);
-                      }
+                      deleteCollection(contextMenu.item.id);
                       closeContextMenu();
                     }}
                   >
@@ -326,16 +348,13 @@ export default function Outliner() {
                   <div 
                     className="px-6 py-1 hover:bg-[#e53935] cursor-pointer"
                     onClick={() => {
-                      if (window.confirm("Delete collection AND all its contents?")) {
-                        // Gather all objects inside and delete them
-                        const objectsToDelete = useStore.getState().objects
-                          .filter(o => o.collectionId === contextMenu.item.id)
-                          .map(o => o.id);
-                        if (objectsToDelete.length > 0) {
-                          useStore.getState().deleteObjects(objectsToDelete);
-                        }
-                        deleteCollection(contextMenu.item.id);
+                      const objectsToDelete = useStore.getState().objects
+                        .filter(o => o.collectionId === contextMenu.item.id)
+                        .map(o => o.id);
+                      if (objectsToDelete.length > 0) {
+                        useStore.getState().deleteObjects(objectsToDelete);
                       }
+                      deleteCollection(contextMenu.item.id);
                       closeContextMenu();
                     }}
                   >
@@ -350,11 +369,9 @@ export default function Outliner() {
               <div 
                 className="px-4 py-1 hover:bg-[#2a4b8d] cursor-pointer"
                 onClick={() => {
-                  const newName = window.prompt("Rename Object:", contextMenu.item.name || contextMenu.item.id);
-                  if (newName) updateObject(contextMenu.item.id, { name: newName });
-                  closeContextMenu();
-                }}
-              >
+                  startEditing(contextMenu.item.id, contextMenu.item.name || contextMenu.item.id);
+                  setContextMenu(null);
+                }}>
                 Rename Object
               </div>
               <div 
