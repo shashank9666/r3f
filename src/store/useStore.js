@@ -141,42 +141,102 @@ export const useStore = create(
 
   // World & Environment Settings
   worldSettings: { 
+    backgroundType: 'color', // 'color', 'environment', 'sky'
     backgroundColor: '#303030', 
     environment: 'none', 
+    environmentIntensity: 1.0,
+    environmentBlur: 0.0,
+    environmentRotation: 0,
     fogEnabled: false, 
+    fogType: 'linear', // 'linear', 'exponential'
     fogColor: '#303030', 
     fogNear: 10, 
     fogFar: 100, 
+    fogDensity: 0.01,
     ambientIntensity: 0.5, 
     ambientColor: '#ffffff',
-    showGrid: true
+    showGrid: true,
+    skySunPosition: [100, 20, 100],
+    skyTurbidity: 10,
+    skyRayleigh: 3,
+    skyMieCoefficient: 0.005,
+    skyMieDirectionalG: 0.7
   },
   updateWorldSettings: (updates) => set((state) => ({ worldSettings: { ...state.worldSettings, ...updates } })),
   resetWorldSettings: () => set({ worldSettings: { 
+    backgroundType: 'color',
     backgroundColor: '#303030', 
     environment: 'none', 
+    environmentIntensity: 1.0,
+    environmentBlur: 0.0,
+    environmentRotation: 0,
     fogEnabled: false, 
+    fogType: 'linear',
     fogColor: '#303030', 
     fogNear: 10, 
     fogFar: 100, 
+    fogDensity: 0.01,
     ambientIntensity: 0.5, 
     ambientColor: '#ffffff',
-    showGrid: true
+    showGrid: true,
+    skySunPosition: [100, 20, 100],
+    skyTurbidity: 10,
+    skyRayleigh: 3,
+    skyMieCoefficient: 0.005,
+    skyMieDirectionalG: 0.7
   }}),
 
   // Render & PostProcessing Settings
   renderSettings: { 
     toneMapping: 'ACESFilmic', 
     exposure: 1.0, 
-    shadows: true, 
-    antialias: true 
+    shadows: true,
+    shadowType: 'PCFSoft', // 'Basic', 'PCF', 'PCFSoft', 'VSM'
+    antialias: true,
+    dpr: 1.5,
+    powerPreference: 'high-performance'
   },
   updateRenderSettings: (updates) => set((state) => ({ renderSettings: { ...state.renderSettings, ...updates } })),
   resetRenderSettings: () => set({ renderSettings: { 
     toneMapping: 'ACESFilmic', 
     exposure: 1.0, 
     shadows: true, 
-    antialias: true 
+    shadowType: 'PCFSoft',
+    antialias: true,
+    dpr: 1.5,
+    powerPreference: 'high-performance'
+  }}),
+
+  postProcessingSettings: {
+    enabled: false,
+    bloomEnabled: false,
+    bloomIntensity: 1.5,
+    bloomLuminanceThreshold: 0.9,
+    bloomLuminanceSmoothing: 0.025,
+    vignetteEnabled: false,
+    vignetteOffset: 0.5,
+    vignetteDarkness: 0.5,
+    dofEnabled: false,
+    dofFocusDistance: 0.0,
+    dofFocalLength: 0.02,
+    dofBokehScale: 2.0,
+    ssaoEnabled: false,
+  },
+  updatePostProcessingSettings: (updates) => set((state) => ({ postProcessingSettings: { ...state.postProcessingSettings, ...updates } })),
+  resetPostProcessingSettings: () => set({ postProcessingSettings: {
+    enabled: false,
+    bloomEnabled: false,
+    bloomIntensity: 1.5,
+    bloomLuminanceThreshold: 0.9,
+    bloomLuminanceSmoothing: 0.025,
+    vignetteEnabled: false,
+    vignetteOffset: 0.5,
+    vignetteDarkness: 0.5,
+    dofEnabled: false,
+    dofFocusDistance: 0.0,
+    dofFocalLength: 0.02,
+    dofBokehScale: 2.0,
+    ssaoEnabled: false,
   }}),
 
   movementSpeed: 5,
@@ -454,5 +514,6 @@ export const useStore = create(
     movementSpeed: state.movementSpeed,
     worldSettings: state.worldSettings,
     renderSettings: state.renderSettings,
+    postProcessingSettings: state.postProcessingSettings,
   }),
 }));
