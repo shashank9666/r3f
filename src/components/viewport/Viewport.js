@@ -1,9 +1,10 @@
 "use client";
 
-import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, FlyControls, OrthographicCamera, PerspectiveCamera, Grid, Edges } from "@react-three/drei";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
+import { OrbitControls, FlyControls, OrthographicCamera, PerspectiveCamera, Grid, Edges, Environment } from "@react-three/drei";
 import { useStore, CANVAS_SETTINGS, GRID_SETTINGS, FOG_SETTINGS, AXES_SETTINGS } from "../../store/useStore";
 import { useEffect, useRef, useState } from "react";
+import * as THREE from 'three';
 import NavigationToolbar from "./ViewportNavigation/NavigationToolbar";
 import NavigationGizmo from "./NavigationGizmo/NavigationGizmo";
 import SceneObjects from "./SceneObjects";
@@ -32,13 +33,26 @@ function SceneRegister() {
   );
 }
 
+function RenderSettingsApplier() {
+  const { gl } = useThree();
+  const renderSettings = useStore((state) => state.renderSettings);
+  
+  useEffect(() => {
+    gl.toneMapping = THREE[renderSettings.toneMapping] || THREE.NoToneMapping;
+    gl.toneMappingExposure = renderSettings.exposure;
+    gl.shadowMap.enabled = renderSettings.shadows;
+  }, [renderSettings, gl]);
+  
+  return null;
+}
+
 export default function Viewport() {
   const {
     lighting,
     showGrid,
     showCube
   } = useStore((state) => state.viewport);
-  const { setControls, projection, isWalking, movementSpeed, isCameraView, setSelectedIds, activeTool, viewportShading } = useStore();
+  const { setControls, projection, isWalking, movementSpeed, isCameraView, setSelectedIds, activeTool, viewportShading, worldSettings } = useStore();
   const controlsRef = useRef();
   const [contextMenuPos, setContextMenuPos] = useState(null);
 
@@ -83,9 +97,14 @@ export default function Viewport() {
         <NavigationGizmo />
         <ViewportNavigationHandler />
         <SceneRegister />
-        <color attach="background" args={["#303030"]} />
-        {projection === 'perspective' && (
-          <fog attach="fog" args={[FOG_SETTINGS.color, FOG_SETTINGS.near, FOG_SETTINGS.far]} />
+        <RenderSettingsApplier />
+        
+        <color attach="background" args={[worldSettings.backgroundColor]} />
+        {worldSettings.fogEnabled && (
+          <fog attach="fog" args={[worldSettings.fogColor, worldSettings.fogNear, worldSettings.fogFar]} />
+        )}
+        {worldSettings.environment !== 'none' && (
+          <Environment preset={worldSettings.environment} background={false} />
         )}
 
         {isWalking ? (
@@ -123,12 +142,16 @@ export default function Viewport() {
         )}
 
         {/* Basic lighting */}
-        <ambientLight intensity={lighting.ambientIntensity} />
-        <directionalLight position={lighting.directionalPosition} intensity={lighting.directionalIntensity} />
-        <directionalLight position={lighting.secondaryDirectionalPosition} intensity={lighting.secondaryDirectionalIntensity} />
+        <ambientLight intensity={worldSettings.ambientIntensity} color={worldSettings.ambientColor} />
+        {worldSettings.environment === 'none' && (
+          <>
+            <directionalLight position={lighting.directionalPosition} intensity={lighting.directionalIntensity} castShadow />
+            <directionalLight position={lighting.secondaryDirectionalPosition} intensity={lighting.secondaryDirectionalIntensity} castShadow />
+          </>
+        )}
 
         {/* Blender-like Grid or Infinite Stage */}
-        {showGrid && viewportShading !== 'rendered' && (
+        {worldSettings.showGrid && viewportShading !== 'rendered' && (
           <group>
             <Grid {...GRID_SETTINGS} />
             {/* Infinite colored axes lines on the floor (X and Z) */}

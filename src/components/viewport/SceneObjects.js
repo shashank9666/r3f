@@ -62,6 +62,35 @@ export default function SceneObjects() {
   
   const objectRefs = useRef({});
 
+  const [dragState, setDragState] = useState({ active: false, objId: null, startY: 0, startDistance: 0 });
+
+  const handleRingPointerDown = (e, obj, distance) => {
+    e.stopPropagation();
+    e.target.setPointerCapture(e.pointerId);
+    setDragState({ active: true, objId: obj.id, startY: e.clientY, startDistance: distance });
+  };
+
+  const handleRingPointerMove = (e) => {
+    if (dragState.active && dragState.objId) {
+      e.stopPropagation();
+      const deltaY = e.clientY - dragState.startY;
+      const newDistance = Math.max(0.1, dragState.startDistance - deltaY * 0.2);
+      const obj = objects.find(o => o.id === dragState.objId);
+      if (obj) {
+        updateObject(dragState.objId, { properties: { ...obj.properties, distance: newDistance } });
+      }
+    }
+  };
+
+  const handleRingPointerUp = (e) => {
+    if (dragState.active) {
+      e.stopPropagation();
+      e.target.releasePointerCapture(e.pointerId);
+      setDragState({ active: false, objId: null, startY: 0, startDistance: 0 });
+      document.body.style.cursor = 'auto';
+    }
+  };
+
   const handlePointerDown = (e, id) => {
     e.stopPropagation(); // Prevent clicking on things behind
     
@@ -165,13 +194,26 @@ export default function SceneObjects() {
           />
           {isSelected && (
             <group>
-              <mesh rotation={[Math.PI / 2, 0, 0]}>
-                <ringGeometry args={[distance, distance + 0.05, 64]} />
-                <meshBasicMaterial color="#ffffff" side={2} transparent opacity={0.3} depthTest={false} />
+              <mesh 
+                rotation={[Math.PI / 2, 0, 0]}
+                onPointerDown={(e) => handleRingPointerDown(e, obj, distance)}
+                onPointerMove={handleRingPointerMove}
+                onPointerUp={handleRingPointerUp}
+                onPointerOver={(e) => { e.stopPropagation(); document.body.style.cursor = 'col-resize'; }}
+                onPointerOut={(e) => { if (!dragState.active) document.body.style.cursor = 'auto'; }}
+              >
+                <ringGeometry args={[distance, distance + 0.1, 64]} />
+                <meshBasicMaterial color="#ffffff" side={2} transparent opacity={0.5} depthTest={false} />
               </mesh>
-              <mesh>
-                <ringGeometry args={[distance, distance + 0.05, 64]} />
-                <meshBasicMaterial color="#ffffff" side={2} transparent opacity={0.3} depthTest={false} />
+              <mesh
+                onPointerDown={(e) => handleRingPointerDown(e, obj, distance)}
+                onPointerMove={handleRingPointerMove}
+                onPointerUp={handleRingPointerUp}
+                onPointerOver={(e) => { e.stopPropagation(); document.body.style.cursor = 'col-resize'; }}
+                onPointerOut={(e) => { if (!dragState.active) document.body.style.cursor = 'auto'; }}
+              >
+                <ringGeometry args={[distance, distance + 0.1, 64]} />
+                <meshBasicMaterial color="#ffffff" side={2} transparent opacity={0.5} depthTest={false} />
               </mesh>
             </group>
           )}

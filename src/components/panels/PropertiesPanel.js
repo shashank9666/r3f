@@ -11,6 +11,8 @@ import {
 import ObjectProperties from './properties/ObjectProperties';
 import MaterialProperties from './properties/MaterialProperties';
 import DataProperties from './properties/DataProperties';
+import WorldProperties from './properties/WorldProperties';
+import RenderProperties from './properties/RenderProperties';
 
 export default function PropertiesPanel() {
   const [activeTab, setActiveTab] = useState('object');
@@ -145,11 +147,11 @@ export default function PropertiesPanel() {
         )}
 
         {/* WORLD / SCENE PLACEHOLDERS */}
-        {activeTab === 'render' && renderPlaceholder('Render Properties')}
+        {activeTab === 'render' && <RenderProperties />}
         {activeTab === 'output' && renderPlaceholder('Output Properties')}
         {activeTab === 'view_layer' && renderPlaceholder('View Layer Properties')}
         {activeTab === 'scene' && renderPlaceholder('Scene Properties')}
-        {activeTab === 'world' && renderPlaceholder('World Properties')}
+        {activeTab === 'world' && <WorldProperties />}
 
       </div>
     </div>
