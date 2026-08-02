@@ -51,7 +51,7 @@ export default function AddMenu() {
             <span>Mesh</span>
             <span>▶</span>
             {hoveredCategory === 'mesh' && (
-              <div className="absolute left-full top-0 bg-[#333333] border border-black/30 rounded shadow-2xl min-w-[150px] py-1 max-h-[300px] overflow-y-auto">
+              <div className="absolute left-full top-0 bg-[#333333] border border-black/30 rounded shadow-2xl min-w-[150px] py-1">
                 {MESH_TYPES.map(type => (
                   <div 
                     key={type} 

@@ -44,3 +44,7 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #606060;
 }
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
