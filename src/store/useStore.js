@@ -448,6 +448,26 @@ export const useStore = create(
   })),
   resetEffects: () => set({ effects: effectDefaults() }),
 
+  // Custom Shader Effects
+  customShaders: [], // { id, name, enabled, vertexShader, fragmentShader, uniforms: {} }
+  addCustomShader: (shader) => set((state) => ({
+    customShaders: [...state.customShaders, {
+      id: `custom-${Date.now()}`,
+      name: shader.name || 'New Shader',
+      enabled: true,
+      vertexShader: shader.vertexShader || '',
+      fragmentShader: shader.fragmentShader || '',
+      uniforms: shader.uniforms || {}
+    }]
+  })),
+  updateCustomShader: (id, updates) => set((state) => ({
+    customShaders: state.customShaders.map((s) => s.id === id ? { ...s, ...updates } : s)
+  })),
+  deleteCustomShader: (id) => set((state) => ({
+    customShaders: state.customShaders.filter((s) => s.id !== id)
+  })),
+
+
   // Scene-wide drei render features (caustics, bvh, adaptive dpr, stats, ...).
   renderFeatures: renderFeatureDefaults(),
   updateRenderFeature: (id, updates) => set((state) => ({
@@ -890,6 +910,7 @@ export const useStore = create(
     renderSettings: state.renderSettings,
     postProcessingSettings: state.postProcessingSettings,
     effects: state.effects,
+    customShaders: state.customShaders,
     renderFeatures: state.renderFeatures,
     worldFeatures: state.worldFeatures,
   }),

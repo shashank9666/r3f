@@ -39,9 +39,20 @@ class ObjectErrorBoundary extends React.Component {
   }
 }
 
+function safeStringify(obj) {
+  const cache = new Set();
+  return JSON.stringify(obj, (key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (cache.has(value)) return '[Circular]';
+      cache.add(value);
+    }
+    return value;
+  });
+}
+
 function SceneObjectItem({ obj, isSelected, isActive, isVisible, transformState, updateObject, renderObjectBody, objectRefs, selectedIds }) {
   const [groupEl, setGroupEl] = useState(null);
-  const resetKey = JSON.stringify(obj.params || {});
+  const resetKey = safeStringify(obj.params || {});
 
   return (
     <React.Fragment>
