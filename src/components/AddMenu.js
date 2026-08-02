@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useStore } from "../../store/useStore";
+import { useStore } from "../store/useStore";
 
 const MESH_TYPES = [
   'Cube', 'Plane', 'Circle', 'Sphere', 'Cylinder', 'Cone', 'Torus', 'TorusKnot', 'Ring', 'Tube', 'Lathe', 'Extrude', 'Icosahedron', 'Octahedron', 'Dodecahedron', 'Tetrahedron', 'Polyhedron'
@@ -15,15 +15,19 @@ const CAMERA_TYPES = [
   'PerspectiveCamera', 'OrthographicCamera', 'CubeCamera'
 ];
 
+const MATERIAL_TYPES = ['Standard', 'Basic', 'Physical', 'Phong', 'Lambert'];
+
 export default function AddMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [hoveredMesh, setHoveredMesh] = useState(null);
   const addObject = useStore((state) => state.addObject);
 
-  const handleAdd = (type, category) => {
-    addObject(type, category);
+  const handleAdd = (type, category, materialType = 'standard') => {
+    addObject(type, category, { materialType: materialType.toLowerCase() });
     setIsOpen(false);
     setHoveredCategory(null);
+    setHoveredMesh(null);
   };
 
   return (
@@ -51,10 +55,28 @@ export default function AddMenu() {
                 {MESH_TYPES.map(type => (
                   <div 
                     key={type} 
-                    className="px-4 py-1.5 text-[#cccccc] hover:bg-[#2d4b73] hover:text-white"
+                    className="relative px-4 py-1.5 text-[#cccccc] hover:bg-[#2d4b73] hover:text-white flex justify-between items-center"
+                    onMouseEnter={() => setHoveredMesh(type)}
                     onClick={() => handleAdd(type, 'mesh')}
                   >
-                    {type}
+                    <span>{type}</span>
+                    <span className="text-[10px] opacity-70">▶</span>
+                    {hoveredMesh === type && (
+                      <div className="absolute left-full top-0 bg-[#333333] border border-black/30 rounded shadow-2xl min-w-[150px] py-1 cursor-default">
+                        {MATERIAL_TYPES.map(mat => (
+                          <div 
+                            key={mat}
+                            className="px-4 py-1.5 text-[#cccccc] hover:bg-[#2d4b73] hover:text-white"
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              handleAdd(type, 'mesh', mat); 
+                            }}
+                          >
+                            {mat}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

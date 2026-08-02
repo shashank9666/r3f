@@ -87,17 +87,33 @@ export default function SceneObjects() {
     }
   };
 
+  const renderMaterial = (obj, isSelected) => {
+    const emissiveProps = {
+      emissive: isSelected ? "#ffaa00" : "#000000",
+      emissiveIntensity: isSelected ? 0.2 : 0
+    };
+
+    switch (obj.materialType) {
+      case 'basic': 
+        return <meshBasicMaterial color={obj.color} wireframe={false} />;
+      case 'physical': 
+        return <meshPhysicalMaterial color={obj.color} roughness={0.7} metalness={0.1} clearcoat={1} {...emissiveProps} />;
+      case 'phong': 
+        return <meshPhongMaterial color={obj.color} shininess={30} {...emissiveProps} />;
+      case 'lambert': 
+        return <meshLambertMaterial color={obj.color} {...emissiveProps} />;
+      case 'standard':
+      default: 
+        return <meshStandardMaterial color={obj.color} roughness={0.7} {...emissiveProps} />;
+    }
+  };
+
   const renderObjectBody = (obj, isSelected) => {
     if (obj.category === 'mesh' || obj.type === 'cube') {
       return (
         <mesh onPointerDown={(e) => handlePointerDown(e, obj.id)}>
           {renderGeometry(obj.type)}
-          <meshStandardMaterial 
-            color={obj.color} 
-            roughness={0.7} 
-            emissive={isSelected ? "#ffaa00" : "#000000"}
-            emissiveIntensity={isSelected ? 0.2 : 0}
-          />
+          {renderMaterial(obj, isSelected)}
         </mesh>
       );
     } else if (obj.category === 'light') {
