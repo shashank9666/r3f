@@ -2,12 +2,41 @@
 
 import React from 'react';
 import { useStore } from '../../../store/useStore';
-import { Lightbulb, Camera, Triangle } from 'lucide-react';
+import { Lightbulb, Camera, Triangle, Sparkles } from 'lucide-react';
+import { DREI_OBJECT_MAP } from '../../../lib/drei/objectCatalog';
+import { ParamList } from './ParamField';
 
 export default function DataProperties({ activeObject }) {
   const updateObject = useStore(state => state.updateObject);
+  const updateObjectParams = useStore(state => state.updateObjectParams);
 
   if (!activeObject) return null;
+
+  // Catalog-driven controls for anything that came out of the drei Add menu
+  const dreiEntry = DREI_OBJECT_MAP[activeObject.type];
+  if (dreiEntry) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2 mb-2 font-semibold text-[13px] border-b border-[#1d1d1d] pb-2 text-green-400">
+          <Sparkles size={16} />
+          <span>{dreiEntry.label}</span>
+        </div>
+
+        <div className="bg-[#303030] rounded border border-[#1d1d1d]">
+          <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d]">
+            {dreiEntry.group} · drei
+          </div>
+          <div className="p-3">
+            <ParamList
+              schema={dreiEntry.params}
+              values={activeObject.params}
+              onChange={(updates) => updateObjectParams(activeObject.id, updates)}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handlePropertyChange = (key, value) => {
     const props = activeObject.properties || {};

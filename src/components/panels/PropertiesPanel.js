@@ -14,6 +14,7 @@ import DataProperties from './properties/DataProperties';
 import WorldProperties from './properties/WorldProperties';
 import RenderProperties from './properties/RenderProperties';
 import PostProcessingProperties from './properties/PostProcessingProperties';
+import ModifierProperties from './properties/ModifierProperties';
 
 export default function PropertiesPanel() {
   const [activeTab, setActiveTab] = useState('object');
@@ -139,8 +140,9 @@ export default function PropertiesPanel() {
             {activeTab === 'data' && <DataProperties activeObject={activeObject} />}
             {activeTab === 'material' && <MaterialProperties activeObject={activeObject} />}
             
+            {activeTab === 'modifiers' && <ModifierProperties activeObject={activeObject} />}
+
             {/* PLACEHOLDERS */}
-            {activeTab === 'modifiers' && renderPlaceholder('Modifier Properties')}
             {activeTab === 'particles' && renderPlaceholder('Particle Properties')}
             {activeTab === 'physics' && renderPlaceholder('Physics Properties')}
             {activeTab === 'constraints' && renderPlaceholder('Object Constraint Properties')}

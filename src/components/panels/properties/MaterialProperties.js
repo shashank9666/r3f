@@ -3,15 +3,22 @@
 import React from 'react';
 import { useStore } from '../../../store/useStore';
 import { Circle } from 'lucide-react';
+import { MATERIALS, MATERIAL_MAP, MATERIAL_ADDONS } from '../../../lib/drei/materialCatalog';
+import { ParamList, CollapsibleFeature } from './ParamField';
 
 export default function MaterialProperties({ activeObject }) {
   const updateObject = useStore(state => state.updateObject);
+  const updateObjectAddon = useStore(state => state.updateObjectAddon);
 
-  if (!activeObject || activeObject.category !== 'mesh' && activeObject.category !== 'cube') return null;
+  if (!activeObject || (activeObject.category !== 'mesh' && activeObject.category !== 'cube')) return null;
 
-  const handleMaterialChange = (key, value) => {
-    updateObject(activeObject.id, { [key]: value });
-  };
+  const materialId = activeObject.materialType || 'standard';
+  const entry = MATERIAL_MAP[materialId] || MATERIAL_MAP.standard;
+
+  const setMaterialParams = (updates) =>
+    updateObject(activeObject.id, {
+      materialParams: { ...(activeObject.materialParams || {}), ...updates },
+    });
 
   return (
     <div className="flex flex-col gap-4">
@@ -27,15 +34,20 @@ export default function MaterialProperties({ activeObject }) {
           <div className="flex items-center justify-between">
             <span className="text-[#a4a4a4]">Type</span>
             <select
-              className="bg-[#1d1d1d] text-white border border-[#404040] rounded px-2 py-1 outline-none text-xs w-32"
-              value={activeObject.materialType || 'standard'}
-              onChange={(e) => handleMaterialChange('materialType', e.target.value)}
+              className="bg-[#1d1d1d] text-white border border-[#404040] rounded px-2 py-1 outline-none text-xs w-36"
+              value={materialId}
+              onChange={(e) => updateObject(activeObject.id, { materialType: e.target.value })}
             >
-              <option value="basic">Basic (Unlit)</option>
-              <option value="lambert">Lambert</option>
-              <option value="phong">Phong</option>
-              <option value="standard">Standard</option>
-              <option value="physical">Physical</option>
+              <optgroup label="Three.js">
+                {MATERIALS.filter((m) => !m.drei).map((m) => (
+                  <option key={m.id} value={m.id}>{m.label}</option>
+                ))}
+              </optgroup>
+              <optgroup label="drei">
+                {MATERIALS.filter((m) => m.drei).map((m) => (
+                  <option key={m.id} value={m.id}>{m.label}</option>
+                ))}
+              </optgroup>
             </select>
           </div>
 
@@ -45,15 +57,37 @@ export default function MaterialProperties({ activeObject }) {
               <input
                 type="color"
                 value={activeObject.color || '#ffffff'}
-                onChange={(e) => handleMaterialChange('color', e.target.value)}
-                className="w-16 h-6 p-0 border-0 rounded cursor-pointer"
+                onChange={(e) => updateObject(activeObject.id, { color: e.target.value })}
+                className="w-14 h-6 p-0 border-0 rounded cursor-pointer bg-transparent"
               />
               <span className="font-mono text-white text-[10px] uppercase w-14">{activeObject.color || '#ffffff'}</span>
             </div>
           </div>
 
+          <ParamList
+            schema={entry.params}
+            values={activeObject.materialParams}
+            onChange={setMaterialParams}
+          />
         </div>
       </div>
+
+      <div className="text-[11px] text-[#a4a4a4] uppercase tracking-wider pt-1">Add-ons</div>
+      {MATERIAL_ADDONS.map((addon) => (
+        <CollapsibleFeature
+          key={addon.id}
+          label={addon.label}
+          enabled={activeObject.materialAddons?.[addon.id]?.enabled}
+          onToggle={(enabled) => updateObjectAddon(activeObject.id, addon.id, { enabled })}
+          defaultOpen={false}
+        >
+          <ParamList
+            schema={addon.params}
+            values={activeObject.materialAddons?.[addon.id]}
+            onChange={(updates) => updateObjectAddon(activeObject.id, addon.id, updates)}
+          />
+        </CollapsibleFeature>
+      ))}
     </div>
   );
 }

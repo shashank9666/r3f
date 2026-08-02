@@ -3,45 +3,56 @@
 import React, { useState, useRef } from 'react';
 import { useStore } from '../store/useStore';
 import { Box } from 'lucide-react';
+import { IMPORT_ACCEPT, importFile } from '../lib/io/importers';
+import { EXPORT_FORMATS, exportScene } from '../lib/io/exporters';
 
 export default function AppMenu() {
   const [activeMenu, setActiveMenu] = useState(null);
-  
-  const resetStore = useStore(state => state.resetStore); // need to implement this
+  const [submenu, setSubmenu] = useState(null);
+
   const objects = useStore(state => state.objects);
   const worldSettings = useStore(state => state.worldSettings);
   const renderSettings = useStore(state => state.renderSettings);
   const postProcessingSettings = useStore(state => state.postProcessingSettings);
-  
+  const effects = useStore(state => state.effects);
+  const renderFeatures = useStore(state => state.renderFeatures);
+  const worldFeatures = useStore(state => state.worldFeatures);
+  const addToast = useStore(state => state.addToast);
+
   const fileInputRef = useRef(null);
+  const assetInputRef = useRef(null);
   const scene = useStore((state) => state.scene);
 
-  const handleExportUSDZ = async () => {
-    if (!scene) {
-      alert("Scene not loaded yet!");
-      return;
+  const closeMenus = () => { setActiveMenu(null); setSubmenu(null); };
+
+  const handleImportClick = () => {
+    assetInputRef.current?.click();
+    closeMenus();
+  };
+
+  const handleAssetChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    const { addObject, updateWorldFeature } = useStore.getState();
+
+    for (const file of files) {
+      const message = importFile(file, { addObject, updateWorldFeature });
+      addToast(message || `Unsupported file type: ${file.name}`, message ? 'success' : 'error');
     }
-    
+    if (files.length) {
+      addToast('Imported assets are not saved with the scene — re-import after reload.', 'info', 6000);
+    }
+    e.target.value = '';
+  };
+
+  const handleExport = async (format) => {
+    closeMenus();
     try {
-      const { USDZExporter } = await import("three-stdlib");
-      const exporter = new USDZExporter();
-      const arrayBuffer = await exporter.parse(scene);
-      
-      const blob = new Blob([arrayBuffer], { type: "application/octet-stream" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.style.display = "none";
-      link.href = url;
-      link.download = "scene.usdz";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      await exportScene(scene, format.id);
+      addToast(`Exported ${format.label}`, 'success');
     } catch (error) {
-      console.error("Failed to export USDZ:", error);
-      alert("Failed to export scene.");
+      console.error(error);
+      addToast(`Export failed: ${error.message}`, 'error');
     }
-    setActiveMenu(null);
   };
 
   const handleNew = () => {
@@ -54,11 +65,14 @@ export default function AppMenu() {
 
   const handleSave = () => {
     const data = {
-      version: 1,
+      version: 2,
       objects,
       worldSettings,
       renderSettings,
-      postProcessingSettings
+      postProcessingSettings,
+      effects,
+      renderFeatures,
+      worldFeatures
     };
     
     const jsonString = JSON.stringify(data, null, 2);
@@ -95,6 +109,9 @@ export default function AppMenu() {
             worldSettings: json.worldSettings || worldSettings,
             renderSettings: json.renderSettings || renderSettings,
             postProcessingSettings: json.postProcessingSettings || postProcessingSettings,
+            effects: json.effects || effects,
+            renderFeatures: json.renderFeatures || renderFeatures,
+            worldFeatures: json.worldFeatures || worldFeatures,
             selectedIds: [],
             activeId: null
           });
@@ -121,12 +138,20 @@ export default function AppMenu() {
 
   return (
     <div className="app-menu-container w-full h-8 bg-[#282828] border-b border-black/30 flex items-center px-4 z-50 text-[#cccccc] text-[13px] font-sans select-none relative">
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleFileChange} 
-        accept=".json" 
-        className="hidden" 
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept=".json"
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={assetInputRef}
+        onChange={handleAssetChange}
+        accept={IMPORT_ACCEPT}
+        multiple
+        className="hidden"
       />
 
       <div className="flex gap-1 items-center">
@@ -158,6 +183,38 @@ export default function AppMenu() {
               <div className="px-4 py-1.5 hover:bg-[#4772b3] cursor-pointer flex justify-between group" onClick={handleSave}>
                 <span>Save</span>
                 <span className="text-[#888] group-hover:text-white/70 text-xs">Ctrl S</span>
+              </div>
+
+              <div className="h-[1px] bg-[#404040] my-1 mx-2"></div>
+
+              {/* Asset import via the drei loaders */}
+              <div
+                className="px-4 py-1.5 hover:bg-[#4772b3] cursor-pointer"
+                onMouseEnter={() => setSubmenu(null)}
+                onClick={handleImportClick}
+              >
+                Import…
+              </div>
+
+              <div
+                className="relative px-4 py-1.5 hover:bg-[#4772b3] cursor-pointer flex justify-between items-center"
+                onMouseEnter={() => setSubmenu('export')}
+              >
+                <span>Export</span>
+                <span className="text-[10px] opacity-70">▶</span>
+                {submenu === 'export' && (
+                  <div className="absolute left-full top-0 -ml-1 w-52 bg-[#282828] border border-[#1d1d1d] shadow-xl py-1 rounded-md flex flex-col">
+                    {EXPORT_FORMATS.map((format) => (
+                      <div
+                        key={format.id}
+                        className="px-4 py-1.5 hover:bg-[#4772b3] cursor-pointer"
+                        onClick={(e) => { e.stopPropagation(); handleExport(format); }}
+                      >
+                        {format.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
