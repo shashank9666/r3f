@@ -58,50 +58,6 @@ export default function SceneObjects() {
   
   const objectRefs = useRef({});
 
-  // Keyboard shortcuts for modal transform
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Don't trigger if user is typing in an input field
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-      const key = e.key.toLowerCase();
-      
-      if (key === 'g' && !transformState.active) {
-        if (selectedIds.length === 0) return;
-        
-        const startPositions = {};
-        selectedIds.forEach(id => {
-          const obj = objects.find(o => o.id === id);
-          if (obj) startPositions[id] = [...obj.position];
-        });
-        
-        setTransformState({ 
-          active: true,
-          mode: 'translate', 
-          axisConstraint: null,
-          planeConstraint: null,
-          numericBuffer: '',
-          startPositions
-        });
-      } else if (key === 'r' && !transformState.active) {
-        setTransformState({ mode: 'rotate', axisConstraint: null }); // Gizmo rotate
-      } else if (key === 's' && !transformState.active) {
-        setTransformState({ mode: 'scale', axisConstraint: null }); // Gizmo scale
-      } else if (key === 'x' && transformState.mode !== 'idle') {
-        setTransformState({ axisConstraint: transformState.axisConstraint === 'X' ? null : 'X' });
-      } else if (key === 'y' && transformState.mode !== 'idle') {
-        setTransformState({ axisConstraint: transformState.axisConstraint === 'Y' ? null : 'Y' });
-      } else if (key === 'z' && transformState.mode !== 'idle') {
-        setTransformState({ axisConstraint: transformState.axisConstraint === 'Z' ? null : 'Z' });
-      } else if (e.key === 'Escape' && !transformState.active) {
-        setTransformState({ mode: 'idle', axisConstraint: null });
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [setTransformState, transformState.mode]);
-
   const handlePointerDown = (e, id) => {
     e.stopPropagation(); // Prevent clicking on things behind
     

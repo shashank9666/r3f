@@ -159,6 +159,101 @@ export const useStore = create(
     };
   }),
 
+  deleteObjects: (ids) => set((state) => {
+    if (ids.length === 0) return state;
+    const historyAction = {
+      type: 'DELETE_OBJECT',
+      previousObjects: [...state.objects],
+      previousSelected: [...state.selectedIds],
+      previousActive: state.activeId
+    };
+    return {
+      objects: state.objects.filter(obj => !ids.includes(obj.id)),
+      selectedIds: [],
+      activeId: null,
+      undoStack: [...state.undoStack, historyAction],
+      redoStack: []
+    };
+  }),
+
+  duplicateObjects: (ids) => set((state) => {
+    if (ids.length === 0) return state;
+    
+    const objectsToDuplicate = state.objects.filter(obj => ids.includes(obj.id));
+    const newObjects = objectsToDuplicate.map(obj => ({
+      ...obj,
+      id: `${obj.type}-copy-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      // Add slight offset if not going into grab mode, but since Blender goes into grab mode, we don't offset yet.
+    }));
+    
+    const newIds = newObjects.map(obj => obj.id);
+    
+    const historyAction = {
+      type: 'DUPLICATE_OBJECT',
+      previousObjects: [...state.objects],
+      previousSelected: [...state.selectedIds],
+      previousActive: state.activeId
+    };
+    
+    return {
+      objects: [...state.objects, ...newObjects],
+      selectedIds: newIds,
+      activeId: newIds[newIds.length - 1],
+      undoStack: [...state.undoStack, historyAction],
+      redoStack: []
+    };
+  }),
+
+  clearTransforms: (type) => set((state) => {
+    if (state.selectedIds.length === 0) return state;
+    
+    const historyAction = {
+      type: 'CLEAR_TRANSFORMS',
+      previousObjects: [...state.objects],
+      previousSelected: [...state.selectedIds],
+      previousActive: state.activeId
+    };
+    
+    const newObjects = state.objects.map(obj => {
+      if (!state.selectedIds.includes(obj.id)) return obj;
+      if (type === 'location') return { ...obj, position: [0, 0, 0] };
+      if (type === 'rotation') return { ...obj, rotation: [0, 0, 0] };
+      if (type === 'scale') return { ...obj, scale: [1, 1, 1] };
+      return obj;
+    });
+    
+    return {
+      objects: newObjects,
+      undoStack: [...state.undoStack, historyAction],
+      redoStack: []
+    };
+  }),
+
+  applyTransforms: () => set((state) => {
+    if (state.selectedIds.length === 0) return state;
+    
+    const historyAction = {
+      type: 'APPLY_TRANSFORMS',
+      previousObjects: [...state.objects],
+      previousSelected: [...state.selectedIds],
+      previousActive: state.activeId
+    };
+    
+    // In a generic mesh renderer, baking transforms into geometry is complex.
+    // For now, this is a simplified visual reset of the TRS values to 0/1 without
+    // actually mutating the primitive's vertices (which is not possible on BoxGeometry directly).
+    const newObjects = state.objects.map(obj => {
+      if (!state.selectedIds.includes(obj.id)) return obj;
+      return { ...obj, rotation: [0, 0, 0], scale: [1, 1, 1] }; 
+    });
+    
+    return {
+      objects: newObjects,
+      undoStack: [...state.undoStack, historyAction],
+      redoStack: []
+    };
+  }),
+
   // Selection
   selectedIds: [],
   activeId: null,

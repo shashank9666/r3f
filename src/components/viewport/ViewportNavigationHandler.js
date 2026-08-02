@@ -77,9 +77,11 @@ export default function ViewportNavigationHandler() {
     };
 
     const handlePointerUp = (e) => {
+      if (!isDragging.current) return; // Ignore pointer up if pointer down wasn't on canvas
+      
       isDragging.current = false;
       
-      // If the user just clicked without dragging, revert to select mode
+      // If the user just clicked on the canvas without dragging, revert to select mode
       if (!hasDragged.current) {
         setActiveTool('select');
       }

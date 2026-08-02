@@ -9,6 +9,7 @@ import NavigationGizmo from "./NavigationGizmo/NavigationGizmo";
 import SceneObjects from "./SceneObjects";
 import ViewportNavigationHandler from "./ViewportNavigationHandler";
 import TransformHUD from "./TransformHUD";
+import ViewportHotkeys from "./ViewportHotkeys";
 
 function SceneRegister() {
   const { scene, camera } = useThree();
@@ -41,6 +42,7 @@ export default function Viewport() {
     <div className="relative w-full h-screen bg-[#282828] select-none overflow-hidden">
       <NavigationToolbar />
       <TransformHUD />
+      <ViewportHotkeys />
       
       {/* Camera View Overlay */}
       {isCameraView && (
