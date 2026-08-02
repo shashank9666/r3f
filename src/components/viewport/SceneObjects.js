@@ -57,6 +57,7 @@ export default function SceneObjects() {
   const transformState = useStore((state) => state.transformState);
   const setTransformState = useStore((state) => state.setTransformState);
   const updateObject = useStore((state) => state.updateObject);
+  const isCameraView = useStore((state) => state.isCameraView);
   
   const objectRefs = useRef({});
 
@@ -151,6 +152,10 @@ export default function SceneObjects() {
         </mesh>
       );
     } else if (obj.category === 'camera') {
+      // If we are looking through the camera, hide its physical representation
+      if (isCameraView) {
+        return null;
+      }
       return (
         <mesh onPointerDown={(e) => handlePointerDown(e, obj.id)}>
           <boxGeometry args={[0.5, 0.5, 0.5]} />

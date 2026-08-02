@@ -15,6 +15,8 @@ export default function Outliner() {
   const updateCollection = useStore(state => state.updateCollection);
   const addCollection = useStore(state => state.addCollection);
   const deleteCollection = useStore(state => state.deleteCollection);
+  const activeSceneCameraId = useStore(state => state.activeSceneCameraId);
+  const setActiveSceneCamera = useStore(state => state.setActiveSceneCamera);
   
   // Local state for context menu, dragging, and renaming
   const [contextMenu, setContextMenu] = useState(null);
@@ -109,8 +111,11 @@ export default function Outliner() {
     setDraggedItem(null);
   };
 
-  const getIcon = (category, type) => {
-    if (category === 'camera') return <Video size={14} className="text-[#a4a4a4]" />;
+  const getIcon = (category, type, id) => {
+    if (category === 'camera') {
+      const isActiveCam = id === activeSceneCameraId;
+      return <Video size={14} className={isActiveCam ? "text-[#4caf50]" : "text-[#a4a4a4]"} />;
+    }
     if (category === 'light') return <Sun size={14} className="text-[#a4a4a4]" />;
     if (category === 'mesh') return <Triangle size={14} className="text-[#a4a4a4]" />;
     return <Box size={14} className="text-[#a4a4a4]" />;
@@ -139,7 +144,17 @@ export default function Outliner() {
       >
         <div className="w-4 flex-shrink-0" />
         <div className="flex items-center gap-2 flex-1 overflow-hidden">
-          {getIcon(obj.category, obj.type)}
+          <div 
+            className={obj.category === 'camera' ? 'cursor-pointer hover:opacity-80' : ''}
+            onClick={(e) => {
+              if (obj.category === 'camera') {
+                e.stopPropagation();
+                setActiveSceneCamera(obj.id);
+              }
+            }}
+          >
+            {getIcon(obj.category, obj.type, obj.id)}
+          </div>
           {isEditing ? (
             <input
               autoFocus
@@ -311,17 +326,7 @@ export default function Outliner() {
         >
           {contextMenu.type === 'collection' && (
             <>
-              <div className="px-3 py-1.5 text-[#aaaaaa] font-medium border-b border-[#1d1d1d] mb-1">
-                Collection
-              </div>
-              <div 
-                className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer"
-                onClick={() => {
-                  addCollection("Collection", contextMenu.item.id);
-                  setContextMenu(null);
-                }}>
-                New
-              </div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer" onClick={() => { addCollection("Collection", contextMenu.item.id); setContextMenu(null); }}>New</div>
               <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer opacity-50">Duplicate Collection</div>
               <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer opacity-50">Duplicate Linked</div>
               <div className="my-1 border-t border-[#1d1d1d]"></div>
@@ -336,65 +341,75 @@ export default function Outliner() {
 
               {contextMenu.item.id !== 'root' && (
                 <>
-                  <div 
-                    className="px-6 py-1 hover:bg-[#e53935] cursor-pointer flex justify-between"
-                    onClick={() => {
-                      deleteCollection(contextMenu.item.id);
-                      closeContextMenu();
-                    }}
-                  >
+                  <div className="px-6 py-1 hover:bg-[#e53935] cursor-pointer flex justify-between" onClick={() => { deleteCollection(contextMenu.item.id); closeContextMenu(); }}>
                     <span>Delete</span><span className="text-[#888]">X</span>
                   </div>
-                  <div 
-                    className="px-6 py-1 hover:bg-[#e53935] cursor-pointer"
-                    onClick={() => {
-                      const objectsToDelete = useStore.getState().objects
-                        .filter(o => o.collectionId === contextMenu.item.id)
-                        .map(o => o.id);
-                      if (objectsToDelete.length > 0) {
-                        useStore.getState().deleteObjects(objectsToDelete);
-                      }
-                      deleteCollection(contextMenu.item.id);
-                      closeContextMenu();
-                    }}
-                  >
-                    Delete Hierarchy
-                  </div>
+                  <div className="px-6 py-1 hover:bg-[#e53935] cursor-pointer" onClick={() => { 
+                    const objectsToDelete = useStore.getState().objects.filter(o => o.collectionId === contextMenu.item.id).map(o => o.id);
+                    if (objectsToDelete.length > 0) useStore.getState().deleteObjects(objectsToDelete);
+                    deleteCollection(contextMenu.item.id); closeContextMenu(); 
+                  }}>Delete Hierarchy</div>
+                  <div className="my-1 border-t border-[#1d1d1d]"></div>
                 </>
               )}
+              
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer opacity-50">Select Objects</div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer opacity-50">Deselect Objects</div>
+              <div className="my-1 border-t border-[#1d1d1d]"></div>
+              
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer opacity-50">Instance to Scene</div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer opacity-50">Unlink</div>
+              <div className="my-1 border-t border-[#1d1d1d]"></div>
+              
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer flex justify-between items-center opacity-50"><span>Visibility</span><span className="text-[10px]">▶</span></div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer flex justify-between items-center opacity-50"><span>View Layer</span><span className="text-[10px]">▶</span></div>
+              <div className="my-1 border-t border-[#1d1d1d]"></div>
+              
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer flex justify-between items-center opacity-50"><span>ID Data</span><span className="text-[10px]">▶</span></div>
+              <div className="my-1 border-t border-[#1d1d1d]"></div>
+              
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer opacity-50">Mark as Asset</div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer text-[#666]">Clear Asset</div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer text-[#666]">Clear Asset (Set Fake User)</div>
+              <div className="my-1 border-t border-[#1d1d1d]"></div>
+              
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer flex justify-between items-center opacity-50"><span>Library Override</span><span className="text-[10px]">▶</span></div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer flex justify-between items-center opacity-50"><span>View</span><span className="text-[10px]">▶</span></div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer flex justify-between items-center opacity-50"><span>Area</span><span className="text-[10px]">▶</span></div>
             </>
           )}
           {contextMenu.type === 'object' && (
             <>
-              <div 
-                className="px-4 py-1 hover:bg-[#2a4b8d] cursor-pointer"
-                onClick={() => {
-                  startEditing(contextMenu.item.id, contextMenu.item.name || contextMenu.item.id);
-                  setContextMenu(null);
-                }}>
-                Rename Object
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer flex justify-between opacity-50"><span>Copy</span><span className="text-[#888]">Ctrl C</span></div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer flex justify-between opacity-50"><span>Paste</span><span className="text-[#888]">Ctrl V</span></div>
+              <div className="my-1 border-t border-[#1d1d1d]"></div>
+
+              <div className="px-6 py-1 hover:bg-[#e53935] cursor-pointer flex justify-between" onClick={() => { useStore.getState().deleteObjects([contextMenu.item.id]); closeContextMenu(); }}>
+                <span>Delete</span><span className="text-[#888]">X</span>
               </div>
-              <div 
-                className="px-4 py-1 hover:bg-[#2a4b8d] cursor-pointer"
-                onClick={() => {
-                  // Duplicate
-                  useStore.getState().duplicateObjects([contextMenu.item.id]);
-                  closeContextMenu();
-                }}
-              >
-                Copy / Duplicate
-              </div>
-              <div 
-                className="px-4 py-1 hover:bg-[#e53935] cursor-pointer text-[#ff6b6b]"
-                onClick={() => {
-                  if (window.confirm("Delete object?")) {
-                    useStore.getState().deleteObjects([contextMenu.item.id]);
-                  }
-                  closeContextMenu();
-                }}
-              >
-                Delete Object
-              </div>
+              <div className="px-6 py-1 hover:bg-[#e53935] cursor-pointer" onClick={() => { useStore.getState().deleteObjects([contextMenu.item.id]); closeContextMenu(); }}>Delete Hierarchy</div>
+              <div className="my-1 border-t border-[#1d1d1d]"></div>
+              
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer" onClick={() => { handleSelectObject({stopPropagation:()=>{}, shiftKey: false}, contextMenu.item.id); closeContextMenu(); }}>Select</div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer opacity-50">Select Hierarchy</div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer" onClick={() => { useStore.getState().setSelectedIds(selectedIds.filter(id => id !== contextMenu.item.id)); closeContextMenu(); }}>Deselect</div>
+              <div className="my-1 border-t border-[#1d1d1d]"></div>
+              
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer opacity-50">Unlink</div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer opacity-50">New Collection</div>
+              <div className="my-1 border-t border-[#1d1d1d]"></div>
+              
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer flex justify-between items-center opacity-50"><span>ID Data</span><span className="text-[10px]">▶</span></div>
+              <div className="my-1 border-t border-[#1d1d1d]"></div>
+              
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer opacity-50">Mark as Asset</div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer text-[#666]">Clear Asset</div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer text-[#666]">Clear Asset (Set Fake User)</div>
+              <div className="my-1 border-t border-[#1d1d1d]"></div>
+              
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer flex justify-between items-center opacity-50"><span>Library Override</span><span className="text-[10px]">▶</span></div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer flex justify-between items-center opacity-50"><span>View</span><span className="text-[10px]">▶</span></div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer flex justify-between items-center opacity-50"><span>Area</span><span className="text-[10px]">▶</span></div>
             </>
           )}
         </div>

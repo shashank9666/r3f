@@ -130,6 +130,8 @@ export const useStore = create(
   setIsWalking: (isWalking) => set({ isWalking }),
   isCameraView: false,
   setIsCameraView: (isCameraView) => set({ isCameraView }),
+  activeSceneCameraId: null,
+  setActiveSceneCamera: (id) => set({ activeSceneCameraId: id }),
   savedCameraState: null,
   setSavedCameraState: (state) => set({ savedCameraState: state }),
   projection: 'perspective',
@@ -208,6 +210,7 @@ export const useStore = create(
       objects: [...state.objects, newObject],
       selectedIds: [newId],
       activeId: newId,
+      activeSceneCameraId: (category === 'camera' && !state.activeSceneCameraId) ? newId : state.activeSceneCameraId,
       undoStack: [...state.undoStack, historyAction],
       redoStack: []
     };
@@ -225,6 +228,7 @@ export const useStore = create(
       objects: state.objects.filter(obj => !ids.includes(obj.id)),
       selectedIds: [],
       activeId: null,
+      activeSceneCameraId: ids.includes(state.activeSceneCameraId) ? null : state.activeSceneCameraId,
       undoStack: [...state.undoStack, historyAction],
       redoStack: []
     };
