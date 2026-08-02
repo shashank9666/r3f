@@ -184,6 +184,14 @@ export default function ModalTransformHandler({ objectRefs }) {
   }, [transformState.active, transformState.numericBuffer, transformState.axisConstraint, transformState.planeConstraint, setTransformState, gl, selectedIds, objectRefs]);
 
   const confirmTransform = () => {
+    const objects = useStore.getState().objects;
+    useStore.getState().pushHistory({
+      type: 'TRANSFORM_OBJECTS',
+      previousObjects: [...objects],
+      previousSelected: [...selectedIds],
+      previousActive: useStore.getState().activeId
+    });
+
     // Save new pos to state
     selectedIds.forEach(id => {
       const ref = objectRefs.current[id];

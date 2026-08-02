@@ -176,6 +176,14 @@ export default function ViewportHotkeys() {
         } catch (err) {
           // Normal paste, ignore
         }
+      // Ctrl + Z: Undo, Ctrl + Shift + Z: Redo
+      if (key === 'z' && e.ctrlKey) {
+        e.preventDefault();
+        if (e.shiftKey) {
+          useStore.getState().redo();
+        } else {
+          useStore.getState().undo();
+        }
       }
     };
 

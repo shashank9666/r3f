@@ -332,15 +332,43 @@ export const useStore = create(
     if (state.undoStack.length === 0) return state;
     const action = state.undoStack[state.undoStack.length - 1];
     const newUndoStack = state.undoStack.slice(0, -1);
-    // Apply inverse action (handled externally or simplified here)
-    // For now, we return the pop, and the caller handles the revert.
-    return { undoStack: newUndoStack, redoStack: [...state.redoStack, action] };
+    
+    // Save current state for redo
+    const redoAction = {
+      ...action,
+      previousObjects: [...state.objects],
+      previousSelected: [...state.selectedIds],
+      previousActive: state.activeId
+    };
+
+    return { 
+      undoStack: newUndoStack, 
+      redoStack: [...state.redoStack, redoAction],
+      objects: action.previousObjects || state.objects,
+      selectedIds: action.previousSelected || state.selectedIds,
+      activeId: action.previousActive || state.activeId
+    };
   }),
   redo: () => set((state) => {
     if (state.redoStack.length === 0) return state;
     const action = state.redoStack[state.redoStack.length - 1];
     const newRedoStack = state.redoStack.slice(0, -1);
-    return { redoStack: newRedoStack, undoStack: [...state.undoStack, action] };
+    
+    // Save current state for undo
+    const undoAction = {
+      ...action,
+      previousObjects: [...state.objects],
+      previousSelected: [...state.selectedIds],
+      previousActive: state.activeId
+    };
+
+    return { 
+      redoStack: newRedoStack, 
+      undoStack: [...state.undoStack, undoAction],
+      objects: action.previousObjects || state.objects,
+      selectedIds: action.previousSelected || state.selectedIds,
+      activeId: action.previousActive || state.activeId
+    };
   })
 }), {
   name: 'r3f-editor-storage',
