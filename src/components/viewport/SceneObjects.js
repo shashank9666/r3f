@@ -7,6 +7,9 @@ import { TransformControls, Select } from '@react-three/drei';
 import * as THREE from 'three';
 import ModalTransformHandler from './ModalTransformHandler';
 import { wrapWithModifiers, ModifierChildren } from './drei/Modifiers';
+import DreiObject from './drei/DreiObject';
+import DreiMaterial from './drei/DreiMaterial';
+import { isDreiObject } from '../../lib/drei/objectCatalog';
 
 /**
  * Keeps one broken object (bad URL, failed decode, unsupported file) from taking
