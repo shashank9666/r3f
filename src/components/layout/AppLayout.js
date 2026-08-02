@@ -6,7 +6,7 @@ import PropertiesPanel from '../panels/PropertiesPanel';
 
 export default function AppLayout({ children }) {
   return (
-    <div className="flex w-full h-screen overflow-hidden bg-[#282828] text-[#cccccc] font-sans">
+    <div className="flex w-full h-screen overflow-hidden bg-[#282828] text-[#cccccc] font-sans pt-8 pb-6">
       {/* 3D Viewport Area */}
       <div className="flex-1 relative">
         {children}
