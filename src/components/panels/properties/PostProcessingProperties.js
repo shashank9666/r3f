@@ -1,24 +1,34 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../../../store/useStore';
 import { Wand2, RotateCcw } from 'lucide-react';
+import { EFFECTS } from '../../../lib/drei/effectCatalog';
+import { ParamList, CollapsibleFeature } from './ParamField';
 
 export default function PostProcessingProperties() {
   const settings = useStore(state => state.postProcessingSettings);
   const updateSettings = useStore(state => state.updatePostProcessingSettings);
-  const resetSettings = useStore(state => state.resetPostProcessingSettings);
+  const effects = useStore(state => state.effects);
+  const updateEffect = useStore(state => state.updateEffect);
+  const resetEffects = useStore(state => state.resetEffects);
+  const [filter, setFilter] = useState('');
+
+  const visible = EFFECTS.filter((e) =>
+    e.label.toLowerCase().includes(filter.toLowerCase())
+  );
+  const activeCount = EFFECTS.filter((e) => effects?.[e.id]?.enabled).length;
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between mb-2 border-b border-[#1d1d1d] pb-2">
         <div className="flex items-center gap-2 font-semibold text-[13px] text-blue-400">
           <Wand2 size={16} />
-          <span>Post Processing</span>
+          <span>Effects Composer</span>
         </div>
-        <button 
-          onClick={resetSettings}
-          title="Reset to Default"
+        <button
+          onClick={resetEffects}
+          title="Reset all effects"
           className="p-1 hover:bg-[#383838] text-[#a4a4a4] hover:text-white rounded transition-colors"
         >
           <RotateCcw size={14} />
@@ -27,200 +37,57 @@ export default function PostProcessingProperties() {
 
       <div className="bg-[#303030] rounded border border-[#1d1d1d]">
         <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d] flex items-center gap-2">
-          <input 
-            type="checkbox" 
-            checked={settings.enabled} 
+          <input
+            type="checkbox"
+            checked={settings.enabled}
             onChange={(e) => updateSettings({ enabled: e.target.checked })}
             className="accent-[#4772b3]"
           />
-          <span>Enable Effects Pipeline</span>
+          <span className="flex-1">Enable Effects Pipeline</span>
+          <span className="text-[10px] text-[#777] font-normal">{activeCount} active</span>
         </div>
+        {settings.enabled && (
+          <div className="p-3 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[#a4a4a4]">Multisampling</span>
+              <select
+                className="bg-[#1d1d1d] text-white border border-[#404040] rounded px-2 py-1 outline-none text-xs w-24"
+                value={settings.multisampling}
+                onChange={(e) => updateSettings({ multisampling: parseInt(e.target.value, 10) })}
+              >
+                {[0, 2, 4, 8].map((n) => <option key={n} value={n}>{n === 0 ? 'Off' : `${n}x`}</option>)}
+              </select>
+            </div>
+            <input
+              type="text"
+              value={filter}
+              placeholder="Filter effects…"
+              onChange={(e) => setFilter(e.target.value)}
+              className="bg-[#1d1d1d] text-white border border-[#404040] rounded px-2 py-1 outline-none text-xs w-full"
+            />
+          </div>
+        )}
       </div>
 
-      {settings.enabled && (
-        <>
-          {/* Bloom */}
-          <div className="bg-[#303030] rounded border border-[#1d1d1d]">
-            <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d] flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                checked={settings.bloomEnabled} 
-                onChange={(e) => updateSettings({ bloomEnabled: e.target.checked })}
-                className="accent-[#4772b3]"
-              />
-              <span>Bloom</span>
-            </div>
-            {settings.bloomEnabled && (
-              <div className="p-3 flex flex-col gap-3">
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex justify-between">
-                    <span className="text-[#a4a4a4]">Intensity</span>
-                    <span className="text-white text-xs">{settings.bloomIntensity.toFixed(2)}</span>
-                  </div>
-                  <input 
-                    type="range" min="0" max="5" step="0.1"
-                    value={settings.bloomIntensity}
-                    onChange={(e) => updateSettings({ bloomIntensity: parseFloat(e.target.value) })}
-                    className="w-full accent-[#4772b3]"
-                  />
-                </div>
-                
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex justify-between">
-                    <span className="text-[#a4a4a4]">Luminance Threshold</span>
-                    <span className="text-white text-xs">{settings.bloomLuminanceThreshold.toFixed(2)}</span>
-                  </div>
-                  <input 
-                    type="range" min="0" max="1" step="0.05"
-                    value={settings.bloomLuminanceThreshold}
-                    onChange={(e) => updateSettings({ bloomLuminanceThreshold: parseFloat(e.target.value) })}
-                    className="w-full accent-[#4772b3]"
-                  />
-                </div>
+      {settings.enabled && visible.map((effect) => (
+        <CollapsibleFeature
+          key={effect.id}
+          label={effect.label}
+          enabled={effects?.[effect.id]?.enabled}
+          onToggle={(enabled) => updateEffect(effect.id, { enabled })}
+          defaultOpen={false}
+        >
+          <ParamList
+            schema={effect.params}
+            values={effects?.[effect.id]}
+            onChange={(updates) => updateEffect(effect.id, updates)}
+          />
+        </CollapsibleFeature>
+      ))}
 
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex justify-between">
-                    <span className="text-[#a4a4a4]">Smoothing</span>
-                    <span className="text-white text-xs">{settings.bloomLuminanceSmoothing.toFixed(3)}</span>
-                  </div>
-                  <input 
-                    type="range" min="0" max="1" step="0.005"
-                    value={settings.bloomLuminanceSmoothing}
-                    onChange={(e) => updateSettings({ bloomLuminanceSmoothing: parseFloat(e.target.value) })}
-                    className="w-full accent-[#4772b3]"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Vignette */}
-          <div className="bg-[#303030] rounded border border-[#1d1d1d]">
-            <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d] flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                checked={settings.vignetteEnabled} 
-                onChange={(e) => updateSettings({ vignetteEnabled: e.target.checked })}
-                className="accent-[#4772b3]"
-              />
-              <span>Vignette</span>
-            </div>
-            {settings.vignetteEnabled && (
-              <div className="p-3 flex flex-col gap-3">
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex justify-between">
-                    <span className="text-[#a4a4a4]">Offset</span>
-                    <span className="text-white text-xs">{settings.vignetteOffset.toFixed(2)}</span>
-                  </div>
-                  <input 
-                    type="range" min="0" max="1" step="0.05"
-                    value={settings.vignetteOffset}
-                    onChange={(e) => updateSettings({ vignetteOffset: parseFloat(e.target.value) })}
-                    className="w-full accent-[#4772b3]"
-                  />
-                </div>
-                
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex justify-between">
-                    <span className="text-[#a4a4a4]">Darkness</span>
-                    <span className="text-white text-xs">{settings.vignetteDarkness.toFixed(2)}</span>
-                  </div>
-                  <input 
-                    type="range" min="0" max="1" step="0.05"
-                    value={settings.vignetteDarkness}
-                    onChange={(e) => updateSettings({ vignetteDarkness: parseFloat(e.target.value) })}
-                    className="w-full accent-[#4772b3]"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Depth of Field */}
-          <div className="bg-[#303030] rounded border border-[#1d1d1d]">
-            <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d] flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                checked={settings.dofEnabled} 
-                onChange={(e) => updateSettings({ dofEnabled: e.target.checked })}
-                className="accent-[#4772b3]"
-              />
-              <span>Depth of Field</span>
-            </div>
-            {settings.dofEnabled && (
-              <div className="p-3 flex flex-col gap-3">
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex justify-between">
-                    <span className="text-[#a4a4a4]">Focus Distance</span>
-                    <span className="text-white text-xs">{settings.dofFocusDistance.toFixed(3)}</span>
-                  </div>
-                  <input 
-                    type="range" min="0" max="1" step="0.001"
-                    value={settings.dofFocusDistance}
-                    onChange={(e) => updateSettings({ dofFocusDistance: parseFloat(e.target.value) })}
-                    className="w-full accent-[#4772b3]"
-                  />
-                </div>
-                
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex justify-between">
-                    <span className="text-[#a4a4a4]">Focal Length</span>
-                    <span className="text-white text-xs">{settings.dofFocalLength.toFixed(3)}</span>
-                  </div>
-                  <input 
-                    type="range" min="0" max="1" step="0.001"
-                    value={settings.dofFocalLength}
-                    onChange={(e) => updateSettings({ dofFocalLength: parseFloat(e.target.value) })}
-                    className="w-full accent-[#4772b3]"
-                  />
-                </div>
-                
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex justify-between">
-                    <span className="text-[#a4a4a4]">Bokeh Scale</span>
-                    <span className="text-white text-xs">{settings.dofBokehScale.toFixed(1)}</span>
-                  </div>
-                  <input 
-                    type="range" min="0" max="10" step="0.1"
-                    value={settings.dofBokehScale}
-                    onChange={(e) => updateSettings({ dofBokehScale: parseFloat(e.target.value) })}
-                    className="w-full accent-[#4772b3]"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-          {/* Pixelation */}
-          <div className="bg-[#303030] rounded border border-[#1d1d1d]">
-            <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d] flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                checked={settings.pixelationEnabled} 
-                onChange={(e) => updateSettings({ pixelationEnabled: e.target.checked })}
-                className="accent-[#4772b3]"
-              />
-              <span>Pixelation</span>
-            </div>
-            {settings.pixelationEnabled && (
-              <div className="p-3 flex flex-col gap-3">
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex justify-between">
-                    <span className="text-[#a4a4a4]">Granularity</span>
-                    <span className="text-white text-xs">{settings.pixelationGranularity}</span>
-                  </div>
-                  <input 
-                    type="range" min="1" max="50" step="1"
-                    value={settings.pixelationGranularity}
-                    onChange={(e) => updateSettings({ pixelationGranularity: parseInt(e.target.value) })}
-                    className="w-full accent-[#4772b3]"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        </>
+      {settings.enabled && visible.length === 0 && (
+        <div className="text-[#666] text-[11px] text-center py-4">No effects match “{filter}”.</div>
       )}
-
     </div>
   );
 }

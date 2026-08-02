@@ -3,11 +3,15 @@
 import React from 'react';
 import { useStore } from '../../../store/useStore';
 import { Globe, RotateCcw } from 'lucide-react';
+import { WORLD_FEATURES } from '../../../lib/drei/featureCatalog';
+import { ParamList, CollapsibleFeature } from './ParamField';
 
 export default function WorldProperties() {
   const worldSettings = useStore(state => state.worldSettings);
   const updateWorldSettings = useStore(state => state.updateWorldSettings);
   const resetWorldSettings = useStore(state => state.resetWorldSettings);
+  const worldFeatures = useStore(state => state.worldFeatures);
+  const updateWorldFeature = useStore(state => state.updateWorldFeature);
 
   return (
     <div className="flex flex-col gap-4">
@@ -422,6 +426,24 @@ export default function WorldProperties() {
         </div>
       </div>
 
+      {/* Scene-wide drei staging */}
+      <div className="text-[11px] text-[#a4a4a4] uppercase tracking-wider pt-2">Drei Staging</div>
+      {WORLD_FEATURES.map((feature) => (
+        <CollapsibleFeature
+          key={feature.id}
+          label={feature.label}
+          note={feature.note}
+          enabled={worldFeatures?.[feature.id]?.enabled}
+          onToggle={(enabled) => updateWorldFeature(feature.id, { enabled })}
+          defaultOpen={false}
+        >
+          <ParamList
+            schema={feature.params}
+            values={worldFeatures?.[feature.id]}
+            onChange={(updates) => updateWorldFeature(feature.id, updates)}
+          />
+        </CollapsibleFeature>
+      ))}
     </div>
   );
 }

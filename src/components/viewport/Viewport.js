@@ -73,7 +73,7 @@ export default function Viewport() {
     showGrid,
     showCube
   } = useStore((state) => state.viewport);
-  const { setControls, projection, isWalking, movementSpeed, isCameraView, setSelectedIds, activeTool, viewportShading, worldSettings, postProcessingSettings, renderSettings } = useStore();
+  const { setControls, projection, isWalking, movementSpeed, isCameraView, setSelectedIds, activeTool, viewportShading, worldSettings, renderSettings } = useStore();
   const controlsRef = useRef();
   const [contextMenuPos, setContextMenuPos] = useState(null);
 
@@ -124,7 +124,9 @@ export default function Viewport() {
         <ViewportNavigationHandler />
         <SceneRegister />
         <RenderSettingsApplier />
-        
+        <ProgressReporter />
+        <RenderFeatureEffects />
+
         {/* Background / Environment */}
         {worldSettings.backgroundType === 'color' && (
           <color attach="background" args={[worldSettings.backgroundColor]} />
@@ -272,8 +274,20 @@ export default function Viewport() {
           </mesh>
         </group>
 
-        {/* Render interactive objects from the store */}
-        <SceneObjects />
+        {/* Scene-wide drei staging: environment, stars, clouds, sparkles, shake */}
+        <Suspense fallback={null}>
+          <WorldFeatures />
+        </Suspense>
+
+        {/* Render interactive objects from the store.
+            `Selection` feeds the Outline / SelectiveBloom passes; `SceneWrappers`
+            applies the render features that need to own the scene graph. */}
+        <Selection>
+          <SceneWrappers>
+            <SceneObjects />
+          </SceneWrappers>
+          <EffectsPipeline />
+        </Selection>
 
         {/* Drei Staging: Contact Shadows */}
         {worldSettings.contactShadowsEnabled && (
@@ -318,35 +332,6 @@ export default function Viewport() {
           </Backdrop>
         )}
 
-        {/* Post Processing Pipeline */}
-        {postProcessingSettings.enabled && (
-          <EffectComposer disableNormalPass>
-            {postProcessingSettings.bloomEnabled && (
-              <Bloom 
-                intensity={postProcessingSettings.bloomIntensity}
-                luminanceThreshold={postProcessingSettings.bloomLuminanceThreshold}
-                luminanceSmoothing={postProcessingSettings.bloomLuminanceSmoothing}
-              />
-            )}
-            {postProcessingSettings.vignetteEnabled && (
-              <Vignette 
-                eskil={false} 
-                offset={postProcessingSettings.vignetteOffset} 
-                darkness={postProcessingSettings.vignetteDarkness} 
-              />
-            )}
-            {postProcessingSettings.dofEnabled && (
-              <DepthOfField 
-                focusDistance={postProcessingSettings.dofFocusDistance}
-                focalLength={postProcessingSettings.dofFocalLength}
-                bokehScale={postProcessingSettings.dofBokehScale}
-              />
-            )}
-            {postProcessingSettings.pixelationEnabled && (
-              <Pixelation granularity={postProcessingSettings.pixelationGranularity} />
-            )}
-          </EffectComposer>
-        )}
       </Canvas>
       </div>
     </div>

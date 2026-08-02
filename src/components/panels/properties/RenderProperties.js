@@ -1,13 +1,32 @@
 "use client";
 
 import React from 'react';
+import { useDetectGPU } from '@react-three/drei';
 import { useStore } from '../../../store/useStore';
 import { Camera, RotateCcw } from 'lucide-react';
+import { RENDER_FEATURES } from '../../../lib/drei/featureCatalog';
+import { ParamList, CollapsibleFeature } from './ParamField';
+
+/** drei's GPU tier probe, shown so the user can judge the perf toggles below. */
+function GpuTier() {
+  const gpu = useDetectGPU();
+  if (!gpu) return null;
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-[#a4a4a4]">Detected GPU</span>
+      <span className="text-white text-[10px] text-right max-w-[60%] truncate" title={gpu.gpu}>
+        Tier {gpu.tier}{gpu.isMobile ? ' · mobile' : ''} · {gpu.fps ?? '?'} fps
+      </span>
+    </div>
+  );
+}
 
 export default function RenderProperties() {
   const renderSettings = useStore(state => state.renderSettings);
   const updateRenderSettings = useStore(state => state.updateRenderSettings);
   const resetRenderSettings = useStore(state => state.resetRenderSettings);
+  const renderFeatures = useStore(state => state.renderFeatures);
+  const updateRenderFeature = useStore(state => state.updateRenderFeature);
 
   return (
     <div className="flex flex-col gap-4">
@@ -106,7 +125,7 @@ export default function RenderProperties() {
 
           <div className="flex items-center justify-between mt-1">
             <span className="text-[#a4a4a4]">Max DPR</span>
-            <select 
+            <select
               className="bg-[#1d1d1d] text-white border border-[#404040] rounded px-2 py-1 outline-none text-xs w-24"
               value={renderSettings.dpr}
               onChange={(e) => updateRenderSettings({ dpr: parseFloat(e.target.value) })}
@@ -116,9 +135,29 @@ export default function RenderProperties() {
               <option value={2}>2.0</option>
             </select>
           </div>
+
+          <GpuTier />
         </div>
       </div>
 
+      {/* Scene-wide drei render features */}
+      <div className="text-[11px] text-[#a4a4a4] uppercase tracking-wider pt-2">Drei Features</div>
+      {RENDER_FEATURES.map((feature) => (
+        <CollapsibleFeature
+          key={feature.id}
+          label={feature.label}
+          note={feature.note}
+          enabled={renderFeatures?.[feature.id]?.enabled}
+          onToggle={(enabled) => updateRenderFeature(feature.id, { enabled })}
+          defaultOpen={false}
+        >
+          <ParamList
+            schema={feature.params}
+            values={renderFeatures?.[feature.id]}
+            onChange={(updates) => updateRenderFeature(feature.id, updates)}
+          />
+        </CollapsibleFeature>
+      ))}
     </div>
   );
 }
