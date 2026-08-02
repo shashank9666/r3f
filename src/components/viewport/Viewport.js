@@ -1,8 +1,9 @@
 "use client";
 
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
-import { OrbitControls, FlyControls, OrthographicCamera, PerspectiveCamera, Grid, Edges, Environment, Sky } from "@react-three/drei";
+import { OrbitControls, FlyControls, OrthographicCamera, PerspectiveCamera, Grid, Edges, Environment, Sky, ContactShadows, SoftShadows, AccumulativeShadows, RandomizedLight, Backdrop } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette, DepthOfField } from "@react-three/postprocessing";
+import { Pixelation } from './effects/Pixelation';
 import { useStore, CANVAS_SETTINGS, GRID_SETTINGS, FOG_SETTINGS, AXES_SETTINGS } from "../../store/useStore";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from 'three';
@@ -241,6 +242,51 @@ export default function Viewport() {
         {/* Render interactive objects from the store */}
         <SceneObjects />
 
+        {/* Drei Staging: Contact Shadows */}
+        {worldSettings.contactShadowsEnabled && (
+          <ContactShadows
+            position={[0, worldSettings.backdropFloor, 0]}
+            opacity={worldSettings.contactShadowsOpacity}
+            blur={worldSettings.contactShadowsBlur}
+            far={worldSettings.contactShadowsFar}
+            resolution={256}
+            scale={20}
+          />
+        )}
+
+        {/* Drei Staging: Soft Shadows */}
+        {worldSettings.softShadowsEnabled && (
+          <SoftShadows
+            focus={worldSettings.softShadowsFocus}
+            size={worldSettings.softShadowsSize}
+            samples={worldSettings.softShadowsSamples}
+          />
+        )}
+
+        {/* Drei Staging: Accumulative Shadows */}
+        {worldSettings.accumulativeShadowsEnabled && (
+          <AccumulativeShadows
+            temporal
+            frames={worldSettings.accumulativeShadowsFrames}
+            blend={worldSettings.accumulativeShadowsBlend}
+            position={[0, -0.49, 0]}
+            scale={10}
+          >
+            <RandomizedLight amount={8} radius={5} position={[5, 5, -10]} />
+          </AccumulativeShadows>
+        )}
+
+        {/* Drei Staging: Backdrop */}
+        {worldSettings.backdropEnabled && (
+          <Backdrop
+            floor={worldSettings.backdropFloor}
+            segments={worldSettings.backdropSegments}
+            receiveShadow
+          >
+            <meshStandardMaterial color={worldSettings.backdropColor} />
+          </Backdrop>
+        )}
+
         {/* Post Processing Pipeline */}
         {postProcessingSettings.enabled && (
           <EffectComposer disableNormalPass>
@@ -264,6 +310,9 @@ export default function Viewport() {
                 focalLength={postProcessingSettings.dofFocalLength}
                 bokehScale={postProcessingSettings.dofBokehScale}
               />
+            )}
+            {postProcessingSettings.pixelationEnabled && (
+              <Pixelation granularity={postProcessingSettings.pixelationGranularity} />
             )}
           </EffectComposer>
         )}

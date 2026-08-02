@@ -233,6 +233,142 @@ export default function WorldProperties() {
           </div>
         </div>
       </div>
+
+      {/* ── STAGING ───────────────────────────────────────── */}
+      <div className="pt-1 pb-0.5 px-1 text-[10px] font-semibold text-[#666] uppercase tracking-widest">Staging (drei)</div>
+
+      {/* Contact Shadows */}
+      <div className="bg-[#303030] rounded border border-[#1d1d1d]">
+        <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d] flex items-center gap-2">
+          <input type="checkbox" checked={worldSettings.contactShadowsEnabled}
+            onChange={(e) => updateWorldSettings({ contactShadowsEnabled: e.target.checked })}
+            className="accent-[#4772b3]" />
+          <span>Contact Shadows</span>
+        </div>
+        {worldSettings.contactShadowsEnabled && (
+          <div className="p-3 flex flex-col gap-3">
+            {[
+              { label: 'Opacity', key: 'contactShadowsOpacity', min: 0, max: 1, step: 0.05 },
+              { label: 'Blur',    key: 'contactShadowsBlur',    min: 0, max: 10, step: 0.1 },
+              { label: 'Far',     key: 'contactShadowsFar',     min: 0, max: 20, step: 0.5 },
+            ].map(({ label, key, min, max, step }) => (
+              <div key={key} className="flex flex-col gap-1">
+                <div className="flex justify-between">
+                  <span className="text-[#a4a4a4]">{label}</span>
+                  <span className="text-white text-xs">{Number(worldSettings[key]).toFixed(2)}</span>
+                </div>
+                <input type="range" min={min} max={max} step={step}
+                  value={worldSettings[key]}
+                  onChange={(e) => updateWorldSettings({ [key]: parseFloat(e.target.value) })}
+                  className="w-full accent-[#4772b3]" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Soft Shadows */}
+      <div className="bg-[#303030] rounded border border-[#1d1d1d]">
+        <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d] flex items-center gap-2">
+          <input type="checkbox" checked={worldSettings.softShadowsEnabled}
+            onChange={(e) => updateWorldSettings({ softShadowsEnabled: e.target.checked })}
+            className="accent-[#4772b3]" />
+          <span>Soft Shadows</span>
+        </div>
+        {worldSettings.softShadowsEnabled && (
+          <div className="p-3 flex flex-col gap-3">
+            {[
+              { label: 'Focus',   key: 'softShadowsFocus',   min: 0,  max: 2,  step: 0.01 },
+              { label: 'Size',    key: 'softShadowsSize',    min: 1,  max: 100, step: 1 },
+              { label: 'Samples', key: 'softShadowsSamples', min: 1,  max: 40,  step: 1 },
+            ].map(({ label, key, min, max, step }) => (
+              <div key={key} className="flex flex-col gap-1">
+                <div className="flex justify-between">
+                  <span className="text-[#a4a4a4]">{label}</span>
+                  <span className="text-white text-xs">{worldSettings[key]}</span>
+                </div>
+                <input type="range" min={min} max={max} step={step}
+                  value={worldSettings[key]}
+                  onChange={(e) => updateWorldSettings({ [key]: parseFloat(e.target.value) })}
+                  className="w-full accent-[#4772b3]" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Accumulative Shadows */}
+      <div className="bg-[#303030] rounded border border-[#1d1d1d]">
+        <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d] flex items-center gap-2">
+          <input type="checkbox" checked={worldSettings.accumulativeShadowsEnabled}
+            onChange={(e) => updateWorldSettings({ accumulativeShadowsEnabled: e.target.checked })}
+            className="accent-[#4772b3]" />
+          <span>Accumulative Shadows</span>
+        </div>
+        {worldSettings.accumulativeShadowsEnabled && (
+          <div className="p-3 flex flex-col gap-3">
+            {[
+              { label: 'Frames', key: 'accumulativeShadowsFrames', min: 1,  max: 500, step: 1 },
+              { label: 'Blend',  key: 'accumulativeShadowsBlend',  min: 1,  max: 500, step: 1 },
+            ].map(({ label, key, min, max, step }) => (
+              <div key={key} className="flex flex-col gap-1">
+                <div className="flex justify-between">
+                  <span className="text-[#a4a4a4]">{label}</span>
+                  <span className="text-white text-xs">{worldSettings[key]}</span>
+                </div>
+                <input type="range" min={min} max={max} step={step}
+                  value={worldSettings[key]}
+                  onChange={(e) => updateWorldSettings({ [key]: parseInt(e.target.value) })}
+                  className="w-full accent-[#4772b3]" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Backdrop */}
+      <div className="bg-[#303030] rounded border border-[#1d1d1d]">
+        <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d] flex items-center gap-2">
+          <input type="checkbox" checked={worldSettings.backdropEnabled}
+            onChange={(e) => updateWorldSettings({ backdropEnabled: e.target.checked })}
+            className="accent-[#4772b3]" />
+          <span>Backdrop</span>
+        </div>
+        {worldSettings.backdropEnabled && (
+          <div className="p-3 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[#a4a4a4]">Color</span>
+              <div className="flex items-center gap-2">
+                <input type="color" value={worldSettings.backdropColor}
+                  onChange={(e) => updateWorldSettings({ backdropColor: e.target.value })}
+                  className="w-16 h-6 p-0 border-0 rounded cursor-pointer bg-transparent" />
+                <span className="font-mono text-white text-[10px] uppercase w-14">{worldSettings.backdropColor}</span>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <div className="flex justify-between">
+                <span className="text-[#a4a4a4]">Floor</span>
+                <span className="text-white text-xs">{worldSettings.backdropFloor.toFixed(2)}</span>
+              </div>
+              <input type="range" min={-5} max={0} step={0.1}
+                value={worldSettings.backdropFloor}
+                onChange={(e) => updateWorldSettings({ backdropFloor: parseFloat(e.target.value) })}
+                className="w-full accent-[#4772b3]" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <div className="flex justify-between">
+                <span className="text-[#a4a4a4]">Segments</span>
+                <span className="text-white text-xs">{worldSettings.backdropSegments}</span>
+              </div>
+              <input type="range" min={4} max={100} step={1}
+                value={worldSettings.backdropSegments}
+                onChange={(e) => updateWorldSettings({ backdropSegments: parseInt(e.target.value) })}
+                className="w-full accent-[#4772b3]" />
+            </div>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }
