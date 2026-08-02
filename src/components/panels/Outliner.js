@@ -16,12 +16,15 @@ export default function Outliner() {
   const addCollection = useStore(state => state.addCollection);
   const deleteCollection = useStore(state => state.deleteCollection);
   
-  // Local state for context menu and dragging
+  // Local state for context menu, dragging, and renaming
   const [contextMenu, setContextMenu] = useState(null);
   const [draggedItem, setDraggedItem] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editName, setEditName] = useState("");
 
   const handleSelectObject = (e, id) => {
     e.stopPropagation();
+    if (editingId) return; // Prevent selection while renaming
     if (e.shiftKey) {
       if (selectedIds.includes(id)) {
         setSelectedIds(selectedIds.filter(selId => selId !== id));
@@ -35,13 +38,31 @@ export default function Outliner() {
 
   const handleSelectCollection = (e, id) => {
     e.stopPropagation();
+    if (editingId) return;
     setActiveCollectionId(id);
     setSelectedIds([]); // Deselect objects when clicking a collection
+  };
+
+  const startEditing = (id, name) => {
+    setEditingId(id);
+    setEditName(name);
+  };
+
+  const commitEdit = (type, id) => {
+    if (editName.trim()) {
+      if (type === 'object') {
+        updateObject(id, { name: editName.trim() });
+      } else {
+        updateCollection(id, { name: editName.trim() });
+      }
+    }
+    setEditingId(null);
   };
 
   const handleContextMenu = (e, item, type) => {
     e.preventDefault();
     e.stopPropagation();
+    if (editingId) return;
     setContextMenu({
       x: e.clientX,
       y: e.clientY,
@@ -56,6 +77,10 @@ export default function Outliner() {
 
   // --- Drag and Drop Handlers ---
   const handleDragStart = (e, item, type) => {
+    if (editingId) {
+      e.preventDefault();
+      return;
+    }
     e.stopPropagation();
     setDraggedItem({ item, type });
     e.dataTransfer.setData('text/plain', item.id);
@@ -96,21 +121,42 @@ export default function Outliner() {
     const isVisible = obj.visible !== false;
     const isRenderable = obj.renderable !== false;
     const isSelectable = obj.selectable !== false;
+    const isEditing = editingId === obj.id;
 
     return (
       <div 
         key={obj.id}
-        draggable
+        draggable={!isEditing}
         onDragStart={(e) => handleDragStart(e, obj, 'object')}
         onClick={(e) => handleSelectObject(e, obj.id)}
         onContextMenu={(e) => handleContextMenu(e, obj, 'object')}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          startEditing(obj.id, obj.name || obj.id);
+        }}
         className={`flex items-center px-2 py-0.5 cursor-pointer select-none group ${isSelected ? 'bg-[#2a4b8d] text-white' : 'hover:bg-[#383838]'}`}
         style={{ paddingLeft: `${indent}px` }}
       >
         <div className="w-4 flex-shrink-0" />
         <div className="flex items-center gap-2 flex-1 overflow-hidden">
           {getIcon(obj.category, obj.type)}
-          <span className="truncate">{obj.name || obj.id}</span>
+          {isEditing ? (
+            <input
+              autoFocus
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onBlur={() => commitEdit('object', obj.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commitEdit('object', obj.id);
+                if (e.key === 'Escape') setEditingId(null);
+              }}
+              className="bg-[#1d1d1d] text-white outline-none border border-[#404040] rounded-sm px-1 py-0 w-full text-xs"
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <span className="truncate">{obj.name || obj.id}</span>
+          )}
         </div>
 
         {/* Toggles */}
@@ -135,6 +181,7 @@ export default function Outliner() {
     const isVisible = col.visible !== false;
     const isRenderable = col.renderable !== false;
     const isSelectable = col.selectable !== false; // Using selectable as the view layer checkmark equivalent for now
+    const isEditing = editingId === col.id;
 
     // Get children
     const childCollections = collections.filter(c => c.parentId === col.id);
@@ -143,12 +190,16 @@ export default function Outliner() {
     return (
       <div key={col.id}>
         <div 
-          draggable={col.id !== 'root'}
+          draggable={col.id !== 'root' && !isEditing}
           onDragStart={(e) => handleDragStart(e, col, 'collection')}
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, col.id)}
           onClick={(e) => handleSelectCollection(e, col.id)}
           onContextMenu={(e) => handleContextMenu(e, col, 'collection')}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            startEditing(col.id, col.name);
+          }}
           className={`flex items-center px-2 py-0.5 cursor-pointer select-none group ${isActive ? 'bg-[#404040]' : 'hover:bg-[#383838]'}`}
           style={{ paddingLeft: `${indent}px` }}
         >
@@ -162,7 +213,23 @@ export default function Outliner() {
           
           <div className="flex items-center gap-2 flex-1 overflow-hidden ml-1">
             <Archive size={14} className={isActive ? 'text-white' : 'text-[#cccccc]'} />
-            <span className={`truncate font-semibold ${isActive ? 'text-white' : ''}`}>{col.name}</span>
+            {isEditing ? (
+              <input
+                autoFocus
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onBlur={() => commitEdit('collection', col.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitEdit('collection', col.id);
+                  if (e.key === 'Escape') setEditingId(null);
+                }}
+                className="bg-[#1d1d1d] text-white outline-none border border-[#404040] rounded-sm px-1 py-0 w-full text-xs font-semibold"
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <span className={`truncate font-semibold ${isActive ? 'text-white' : ''}`}>{col.name}</span>
+            )}
           </div>
 
           {/* Collection Toggles */}
@@ -218,38 +285,63 @@ export default function Outliner() {
         >
           {contextMenu.type === 'collection' && (
             <>
-              <div 
-                className="px-4 py-1 hover:bg-[#2a4b8d] cursor-pointer"
-                onClick={() => {
-                  const newName = window.prompt("New Collection Name:", contextMenu.item.name);
-                  if (newName) updateCollection(contextMenu.item.id, { name: newName });
-                  closeContextMenu();
-                }}
-              >
-                Rename Collection
+              <div className="px-3 py-1.5 text-[#aaaaaa] font-medium border-b border-[#1d1d1d] mb-1">
+                Collection
               </div>
               <div 
-                className="px-4 py-1 hover:bg-[#2a4b8d] cursor-pointer"
+                className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer"
                 onClick={() => {
                   const name = window.prompt("Subcollection Name:", "New Collection");
                   if (name) addCollection(name, contextMenu.item.id);
                   closeContextMenu();
                 }}
               >
-                Create Subcollection
+                New
               </div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer opacity-50">Duplicate Collection</div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer opacity-50">Duplicate Linked</div>
+              <div className="my-1 border-t border-[#1d1d1d]"></div>
+              
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer flex justify-between opacity-50">
+                <span>Copy</span><span className="text-[#888]">Ctrl C</span>
+              </div>
+              <div className="px-6 py-1 hover:bg-[#2a4b8d] cursor-pointer flex justify-between opacity-50">
+                <span>Paste</span><span className="text-[#888]">Ctrl V</span>
+              </div>
+              <div className="my-1 border-t border-[#1d1d1d]"></div>
+
               {contextMenu.item.id !== 'root' && (
-                <div 
-                  className="px-4 py-1 hover:bg-[#e53935] cursor-pointer text-[#ff6b6b]"
-                  onClick={() => {
-                    if (window.confirm("Delete collection? Contents will be moved to root.")) {
-                      deleteCollection(contextMenu.item.id);
-                    }
-                    closeContextMenu();
-                  }}
-                >
-                  Delete Collection
-                </div>
+                <>
+                  <div 
+                    className="px-6 py-1 hover:bg-[#e53935] cursor-pointer flex justify-between"
+                    onClick={() => {
+                      if (window.confirm("Delete collection? Contents will be moved to root.")) {
+                        deleteCollection(contextMenu.item.id);
+                      }
+                      closeContextMenu();
+                    }}
+                  >
+                    <span>Delete</span><span className="text-[#888]">X</span>
+                  </div>
+                  <div 
+                    className="px-6 py-1 hover:bg-[#e53935] cursor-pointer"
+                    onClick={() => {
+                      if (window.confirm("Delete collection AND all its contents?")) {
+                        // Gather all objects inside and delete them
+                        const objectsToDelete = useStore.getState().objects
+                          .filter(o => o.collectionId === contextMenu.item.id)
+                          .map(o => o.id);
+                        if (objectsToDelete.length > 0) {
+                          useStore.getState().deleteObjects(objectsToDelete);
+                        }
+                        deleteCollection(contextMenu.item.id);
+                      }
+                      closeContextMenu();
+                    }}
+                  >
+                    Delete Hierarchy
+                  </div>
+                </>
               )}
             </>
           )}
