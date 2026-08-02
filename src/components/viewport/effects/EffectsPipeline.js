@@ -228,27 +228,42 @@ function Pass({ id, p }) {
   }
 }
 
+import { CustomShaderPass } from './CustomShaderPass';
+
 export default function EffectsPipeline() {
   const enabled = useStore((state) => state.postProcessingSettings.enabled);
   const multisampling = useStore((state) => state.postProcessingSettings.multisampling);
   const effects = useStore((state) => state.effects);
+  const customShaders = useStore((state) => state.customShaders || []);
 
   const active = useMemo(
     () => EFFECTS.filter((e) => effects?.[e.id]?.enabled),
     [effects]
   );
+  const activeCustom = useMemo(
+    () => customShaders.filter((s) => s.enabled),
+    [customShaders]
+  );
 
-  if (!enabled || active.length === 0) return null;
+  if (!enabled || (active.length === 0 && activeCustom.length === 0)) return null;
 
   return (
     // Keyed on the active set: swapping passes needs a fresh composer
     <EffectComposer
-      key={active.map((e) => e.id).join('|')}
+      key={[...active.map((e) => e.id), ...activeCustom.map((c) => c.id)].join('|')}
       multisampling={multisampling || 0}
       enableNormalPass={active.some((e) => e.id === 'ssao')}
     >
       {active.map((effect) => (
         <Pass key={effect.id} id={effect.id} p={resolveParams(effect.params, effects[effect.id])} />
+      ))}
+      {activeCustom.map((shader) => (
+        <CustomShaderPass
+          key={shader.id}
+          vertexShader={shader.vertexShader}
+          fragmentShader={shader.fragmentShader}
+          uniforms={shader.uniforms}
+        />
       ))}
     </EffectComposer>
   );

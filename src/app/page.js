@@ -6,6 +6,14 @@ import AppLayout from "@/components/layout/AppLayout";
 import AppMenu from "../components/AppMenu";
 import { useStore } from "../store/useStore";
 
+if (typeof window !== 'undefined') {
+  const originalWarn = console.warn;
+  console.warn = (...args) => {
+    if (typeof args[0] === 'string' && args[0].includes('THREE.Clock')) return;
+    originalWarn(...args);
+  };
+}
+
 const Viewport = dynamic(() => import("../components/viewport/Viewport"), {
   ssr: false,
 });
