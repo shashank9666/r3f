@@ -315,8 +315,9 @@ export default function Outliner() {
         onDragOver={handleDragOver}
         onDrop={(e) => handleDrop(e, 'root')}
         onClick={() => {
-          useStore.getState().setActiveCollectionId('root');
-          useStore.getState().setSelectedIds([]);
+          // Click on empty space → deselect everything
+          setActiveCollectionId(null);
+          setSelectedIds([]);
         }}
       >
         {renderCollection('root', 8)}

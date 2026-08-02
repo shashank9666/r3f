@@ -330,7 +330,7 @@ export const useStore = create(
   collections: [
     { id: 'root', name: 'Scene Collection', visible: true, renderable: true, isExpanded: true, parentId: null }
   ],
-  activeCollectionId: 'root',
+  activeCollectionId: null,
   
   setCollections: (collections) => set({ collections }),
   addCollection: (name, parentId = 'root') => set((state) => {
