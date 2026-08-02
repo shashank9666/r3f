@@ -156,19 +156,31 @@ export default function SceneObjects() {
     }
   };
 
-  const handlePointerDown = (e, id) => {
-    e.stopPropagation(); // Prevent clicking on things behind
+  const handlePointerDown = (e, objId) => {
+    e.stopPropagation();
 
-    if (objects.find((o) => o.id === id)?.selectable === false) return;
+    if (activeTool === 'pick-target') {
+      const { pickTargetCallback, setActiveTool } = useStore.getState();
+      if (pickTargetCallback) {
+        pickTargetCallback([e.point.x, e.point.y, e.point.z]);
+      }
+      setActiveTool('select');
+      useStore.setState({ pickTargetCallback: null });
+      return;
+    }
+
+    if (activeTool !== 'select') return;
+
+    if (objects.find((o) => o.id === objId)?.selectable === false) return;
 
     if (e.ctrlKey || e.metaKey) {
-      if (selectedIds.includes(id)) {
-        setSelectedIds(selectedIds.filter(selectedId => selectedId !== id));
+      if (selectedIds.includes(objId)) {
+        setSelectedIds(selectedIds.filter(selectedId => selectedId !== objId));
       } else {
-        setSelectedIds([...selectedIds, id]);
+        setSelectedIds([...selectedIds, objId]);
       }
     } else {
-      setSelectedIds([id]);
+      setSelectedIds([objId]);
     }
   };
 

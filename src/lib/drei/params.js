@@ -25,8 +25,8 @@ export const text = (key, label, def = '') => ({ key, label, type: 'text', def }
 
 export const url = (key, label, def = '') => ({ key, label, type: 'url', def });
 
-export const vec3 = (key, label, def = [0, 0, 0], step = 0.1) => ({
-  key, label, type: 'vec3', def, step,
+export const vec3 = (key, label, def = [0, 0, 0], step = 0.1, picker = false) => ({
+  key, label, type: 'vec3', def, step, picker
 });
 
 /** Collapse a schema into a plain `{ key: default }` object. */

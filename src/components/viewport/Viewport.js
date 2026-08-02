@@ -146,7 +146,13 @@ export default function Viewport() {
         {...CANVAS_SETTINGS} 
         dpr={renderSettings.dpr}
         camera={undefined}
-        onPointerMissed={() => setSelectedIds([])}
+        onPointerMissed={() => {
+          if (useStore.getState().activeTool === 'pick-target') {
+            useStore.setState({ activeTool: 'select', pickTargetCallback: null });
+            return;
+          }
+          setSelectedIds([]);
+        }}
       >
         {projection === 'orthographic' ? (
           <OrthographicCamera makeDefault position={[12, 9, 12]} zoom={40} near={0.1} far={1000} />

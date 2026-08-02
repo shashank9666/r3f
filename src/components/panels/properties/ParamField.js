@@ -47,11 +47,35 @@ function NumberField({ field, value, onChange }) {
   );
 }
 
+import { useStore } from '../../../../store/useStore';
+
 function Vec3Field({ field, value, onChange }) {
   const vec = Array.isArray(value) ? value : [0, 0, 0];
+  const activeTool = useStore((state) => state.activeTool);
+  
   return (
     <div className="flex flex-col gap-1">
-      <span className={LABEL}>{field.label}</span>
+      <div className="flex items-center justify-between">
+        <span className={LABEL}>{field.label}</span>
+        {field.picker && (
+          <button
+            title="Pick a point in the 3D viewport"
+            className={`p-1 rounded transition-colors ${activeTool === 'pick-target' ? 'bg-[#4772b3] text-white' : 'text-[#888] hover:text-white hover:bg-[#333]'}`}
+            onClick={() => {
+              useStore.setState({
+                activeTool: activeTool === 'pick-target' ? 'select' : 'pick-target',
+                pickTargetCallback: activeTool === 'pick-target' ? null : (point) => onChange(point)
+              });
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+          </button>
+        )}
+      </div>
       <div className="flex gap-1">
         {['X', 'Y', 'Z'].map((axis, i) => (
           <input

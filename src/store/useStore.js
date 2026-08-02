@@ -142,6 +142,7 @@ export const useStore = create(
   // --- Toolbar Navigation State ---
   activeTool: 'select',
   setActiveTool: (activeTool) => set({ activeTool }),
+  pickTargetCallback: null,
   zoomLevel: 1,
   setZoomLevel: (level) => set({ zoomLevel: level }),
   isPanning: false,
