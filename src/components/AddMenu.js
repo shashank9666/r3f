@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useStore } from "../store/useStore";
 
 const MESH_TYPES = [
@@ -21,6 +21,9 @@ export default function AddMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [hoveredMesh, setHoveredMesh] = useState(null);
+  // Offset of the material flyout, measured against the scrolling mesh list
+  const [materialTop, setMaterialTop] = useState(0);
+  const meshListRef = useRef(null);
   const addObject = useStore((state) => state.addObject);
 
   const handleAdd = (type, category, materialType = 'standard') => {
@@ -28,6 +31,14 @@ export default function AddMenu() {
     setIsOpen(false);
     setHoveredCategory(null);
     setHoveredMesh(null);
+  };
+
+  // The mesh list scrolls, so its own overflow clips any nested flyout. Track the
+  // hovered row's offset and render the material flyout as a sibling of the list.
+  const handleMeshHover = (e, type) => {
+    const list = meshListRef.current;
+    setMaterialTop(list ? e.currentTarget.offsetTop - list.scrollTop : 0);
+    setHoveredMesh(type);
   };
 
   return (
@@ -51,34 +62,44 @@ export default function AddMenu() {
             <span>Mesh</span>
             <span>▶</span>
             {hoveredCategory === 'mesh' && (
-              <div className="absolute left-full top-0 bg-[#333333] border border-black/30 rounded shadow-2xl min-w-[150px] py-1 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                {MESH_TYPES.map(type => (
-                  <div 
-                    key={type} 
-                    className="relative px-4 py-1.5 text-[#cccccc] hover:bg-[#2d4b73] hover:text-white flex justify-between items-center"
-                    onMouseEnter={() => setHoveredMesh(type)}
-                    onClick={() => handleAdd(type, 'mesh')}
+              <div className="absolute left-full top-0 min-w-[150px]">
+                <div
+                  ref={meshListRef}
+                  onScroll={() => setHoveredMesh(null)}
+                  className="bg-[#333333] border border-black/30 rounded shadow-2xl py-1 max-h-[70vh] overflow-y-auto custom-scrollbar"
+                >
+                  {MESH_TYPES.map(type => (
+                    <div
+                      key={type}
+                      className={`px-4 py-1.5 flex justify-between items-center ${hoveredMesh === type ? 'bg-[#2d4b73] text-white' : 'text-[#cccccc] hover:bg-[#2d4b73] hover:text-white'}`}
+                      onMouseEnter={(e) => handleMeshHover(e, type)}
+                      onClick={() => handleAdd(type, 'mesh')}
+                    >
+                      <span>{type}</span>
+                      <span className="text-[10px] opacity-70">▶</span>
+                    </div>
+                  ))}
+                </div>
+
+                {hoveredMesh && (
+                  <div
+                    className="absolute left-full bg-[#333333] border border-black/30 rounded shadow-2xl min-w-[150px] py-1 cursor-default"
+                    style={{ top: materialTop }}
                   >
-                    <span>{type}</span>
-                    <span className="text-[10px] opacity-70">▶</span>
-                    {hoveredMesh === type && (
-                      <div className="absolute left-full top-0 bg-[#333333] border border-black/30 rounded shadow-2xl min-w-[150px] py-1 cursor-default">
-                        {MATERIAL_TYPES.map(mat => (
-                          <div 
-                            key={mat}
-                            className="px-4 py-1.5 text-[#cccccc] hover:bg-[#2d4b73] hover:text-white"
-                            onClick={(e) => { 
-                              e.stopPropagation(); 
-                              handleAdd(type, 'mesh', mat); 
-                            }}
-                          >
-                            {mat}
-                          </div>
-                        ))}
+                    {MATERIAL_TYPES.map(mat => (
+                      <div
+                        key={mat}
+                        className="px-4 py-1.5 text-[#cccccc] hover:bg-[#2d4b73] hover:text-white"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAdd(hoveredMesh, 'mesh', mat);
+                        }}
+                      >
+                        {mat}
                       </div>
-                    )}
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>

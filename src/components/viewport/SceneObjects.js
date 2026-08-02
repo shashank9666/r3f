@@ -8,26 +8,27 @@ import * as THREE from 'three';
 import ModalTransformHandler from './ModalTransformHandler';
 import TransformProxy from './TransformProxy';
 
-function SceneObjectItem({ obj, isSelected, isActive, transformState, updateObject, renderObjectBody, objectRefs, selectedIds }) {
+function SceneObjectItem({ obj, isSelected, isActive, isVisible, transformState, updateObject, renderObjectBody, objectRefs, selectedIds }) {
   const [groupEl, setGroupEl] = useState(null);
 
   return (
     <React.Fragment>
-      <group 
+      <group
         userData={{ id: obj.id }}
         ref={(el) => {
           setGroupEl(el);
           if (el) objectRefs.current[obj.id] = el;
           else delete objectRefs.current[obj.id];
         }}
-        position={obj.position} 
-        rotation={obj.rotation} 
+        visible={isVisible}
+        position={obj.position}
+        rotation={obj.rotation}
         scale={obj.scale}
       >
         {renderObjectBody(obj, isSelected)}
       </group>
-      
-      {isActive && transformState.mode !== 'idle' && groupEl && selectedIds.length <= 1 && (
+
+      {isVisible && isActive && transformState.mode !== 'idle' && groupEl && selectedIds.length <= 1 && (
         <TransformControls
           object={groupEl}
           mode={transformState.mode}
@@ -49,8 +50,21 @@ function SceneObjectItem({ obj, isSelected, isActive, transformState, updateObje
   );
 }
 
+// A collection hides everything under it, so walk up to the root before deciding.
+function isCollectionChainVisible(collections, collectionId, forRender) {
+  let current = collections.find((c) => c.id === (collectionId || 'root'));
+  while (current) {
+    if (current.visible === false) return false;
+    if (forRender && current.renderable === false) return false;
+    if (!current.parentId) break;
+    current = collections.find((c) => c.id === current.parentId);
+  }
+  return true;
+}
+
 export default function SceneObjects() {
   const objects = useStore((state) => state.objects);
+  const collections = useStore((state) => state.collections);
   const selectedIds = useStore((state) => state.selectedIds);
   const setSelectedIds = useStore((state) => state.setSelectedIds);
   const activeId = useStore((state) => state.activeId);
@@ -93,7 +107,9 @@ export default function SceneObjects() {
 
   const handlePointerDown = (e, id) => {
     e.stopPropagation(); // Prevent clicking on things behind
-    
+
+    if (objects.find((o) => o.id === id)?.selectable === false) return;
+
     if (e.ctrlKey || e.metaKey) {
       if (selectedIds.includes(id)) {
         setSelectedIds(selectedIds.filter(selectedId => selectedId !== id));
@@ -250,11 +266,17 @@ export default function SceneObjects() {
     <>
       <ModalTransformHandler objectRefs={objectRefs} />
       {objects.map((obj) => (
-        <SceneObjectItem 
+        <SceneObjectItem
           key={obj.id}
           obj={obj}
           isSelected={selectedIds.includes(obj.id)}
           isActive={activeId === obj.id}
+          isVisible={
+            obj.visible !== false &&
+            // The camera toggle only culls in rendered shading, like Blender's render visibility
+            (viewportShading !== 'rendered' || obj.renderable !== false) &&
+            isCollectionChainVisible(collections, obj.collectionId, viewportShading === 'rendered')
+          }
           transformState={transformState}
           updateObject={updateObject}
           renderObjectBody={renderObjectBody}
