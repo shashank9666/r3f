@@ -12,6 +12,7 @@ import TransformHUD from "./TransformHUD";
 import ViewportHotkeys from "./ViewportHotkeys";
 import BoxSelectionTool from './ViewportNavigation/BoxSelectionTool';
 import ViewportContextMenu from './ViewportContextMenu';
+import ViewportShadingMenu from './ViewportNavigation/ViewportShadingMenu';
 
 function SceneRegister() {
   const { scene, camera } = useThree();
@@ -37,7 +38,7 @@ export default function Viewport() {
     showGrid,
     showCube
   } = useStore((state) => state.viewport);
-  const { setControls, projection, isWalking, movementSpeed, isCameraView, setSelectedIds, activeTool } = useStore();
+  const { setControls, projection, isWalking, movementSpeed, isCameraView, setSelectedIds, activeTool, viewportShading } = useStore();
   const controlsRef = useRef();
   const [contextMenuPos, setContextMenuPos] = useState(null);
 
@@ -52,6 +53,7 @@ export default function Viewport() {
       <NavigationToolbar />
       <TransformHUD />
       <ViewportHotkeys />
+      <ViewportShadingMenu />
       
       {/* Camera View Overlay */}
       {isCameraView && (
@@ -103,9 +105,19 @@ export default function Viewport() {
             makeDefault 
             enabled={activeTool !== 'box-select'} 
             mouseButtons={{
-              LEFT: activeTool === 'pan' ? 2 : activeTool === 'zoom' ? 1 : 99, // 99 means NONE, freeing it up for selection
-              MIDDLE: 0, // ROTATE (Orbit)
-              RIGHT: 99 // Free up for Context Menu
+              LEFT: activeTool === 'pan' ? 2 : activeTool === 'zoom' ? 1 : 99,
+              MIDDLE: 0,
+              RIGHT: 99
+            }}
+            onChange={(e) => {
+              const state = useStore.getState();
+              if (state.isCameraView && state.activeSceneCameraId) {
+                const camera = e.target.object;
+                state.updateObject(state.activeSceneCameraId, {
+                  position: [camera.position.x, camera.position.y, camera.position.z],
+                  rotation: [camera.rotation.x, camera.rotation.y, camera.rotation.z]
+                });
+              }
             }}
           />
         )}
@@ -115,8 +127,8 @@ export default function Viewport() {
         <directionalLight position={lighting.directionalPosition} intensity={lighting.directionalIntensity} />
         <directionalLight position={lighting.secondaryDirectionalPosition} intensity={lighting.secondaryDirectionalIntensity} />
 
-        {/* Blender-like Grid */}
-        {showGrid && (
+        {/* Blender-like Grid or Infinite Stage */}
+        {showGrid && viewportShading !== 'rendered' && (
           <group>
             <Grid {...GRID_SETTINGS} />
             {/* Infinite colored axes lines on the floor (X and Z) */}
@@ -129,6 +141,14 @@ export default function Viewport() {
               <meshBasicMaterial color={AXES_SETTINGS.colors.z} transparent opacity={AXES_SETTINGS.opacity} depthWrite={false} fog={true} />
             </mesh>
           </group>
+        )}
+
+        {/* Infinite Stage for Rendered Mode */}
+        {viewportShading === 'rendered' && (
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+            <planeGeometry args={[1000, 1000]} />
+            <meshStandardMaterial color="#222222" roughness={1} metalness={0} />
+          </mesh>
         )}
 
 

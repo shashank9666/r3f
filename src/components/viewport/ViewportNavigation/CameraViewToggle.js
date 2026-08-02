@@ -15,6 +15,7 @@ export function useCameraViewToggle() {
     const controls = useStore.getState().controls;
     const objects = useStore.getState().objects;
     const addToast = useStore.getState().addToast;
+    const activeSceneCameraId = useStore.getState().activeSceneCameraId;
 
     if (!mainCamera || !controls) return;
 
@@ -29,10 +30,14 @@ export function useCameraViewToggle() {
       setIsCameraView(false);
     } else {
       // Enter Camera View
-      // 1. Find a camera in the scene objects
-      const sceneCamera = objects.find(o => o.category === 'camera');
+      if (!activeSceneCameraId) {
+        addToast("No Active Camera set!", "error", 3000);
+        return;
+      }
+      
+      const sceneCamera = objects.find(o => o.id === activeSceneCameraId);
       if (!sceneCamera) {
-        addToast("No Camera Found in scene!", "error", 3000);
+        addToast("Active Camera not found in scene!", "error", 3000);
         return;
       }
 
@@ -43,12 +48,14 @@ export function useCameraViewToggle() {
         target: controls.target.clone()
       });
 
-      // 2. Move mainCamera to match the scene camera's transform
+      // Move mainCamera to match the scene camera's transform
       const camPos = new THREE.Vector3(...sceneCamera.position);
       const camRot = new THREE.Euler(...sceneCamera.rotation);
       
-      // Let's make it look at the origin/cube
-      const targetPos = new THREE.Vector3(0, 1, 0);
+      // Calculate a point in front of the camera to set as the orbit target
+      // This ensures that orbiting while in camera view feels natural and pivots around what the camera is looking at
+      const targetPos = new THREE.Vector3(0, 0, -10);
+      targetPos.applyEuler(camRot).add(camPos);
 
       mainCamera.position.copy(camPos);
       mainCamera.setRotationFromEuler(camRot);
@@ -61,17 +68,37 @@ export function useCameraViewToggle() {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Numpad 0 or regular 0 toggles camera view
+      // Prevent typing in inputs
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
       if (e.key === '0' || e.code === 'Numpad0') {
-        // Prevent typing in inputs
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-        toggleCameraView();
+        if (e.ctrlKey || e.metaKey) {
+          // Set selected object as active camera
+          const selectedIds = useStore.getState().selectedIds;
+          const objects = useStore.getState().objects;
+          const addToast = useStore.getState().addToast;
+          
+          if (selectedIds.length === 1) {
+            const selectedObj = objects.find(o => o.id === selectedIds[0]);
+            if (selectedObj && selectedObj.category === 'camera') {
+              useStore.getState().setActiveSceneCamera(selectedObj.id);
+              addToast(`Set Active Camera to ${selectedObj.name || selectedObj.id}`, "info", 2000);
+            } else {
+              addToast("Selected object is not a camera", "error", 2000);
+            }
+          } else {
+            addToast("Select exactly one camera to set as active", "error", 2000);
+          }
+        } else {
+          // Toggle camera view
+          toggleCameraView();
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isCameraView, savedCameraState]); // Re-bind when state changes so toggle closure has latest state
+  }, [isCameraView, savedCameraState]);
 
   return { toggleCameraView, isCameraView };
 }

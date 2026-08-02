@@ -72,6 +72,8 @@ export const useStore = create(
     showGrid: true,
     showCube: true,
   },
+  viewportShading: 'solid',
+  setViewportShading: (mode) => set({ viewportShading: mode }),
 
   // Example functions to update the store if needed later
   toggleGrid: () => set((state) => ({

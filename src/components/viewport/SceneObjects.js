@@ -58,6 +58,7 @@ export default function SceneObjects() {
   const setTransformState = useStore((state) => state.setTransformState);
   const updateObject = useStore((state) => state.updateObject);
   const isCameraView = useStore((state) => state.isCameraView);
+  const viewportShading = useStore((state) => state.viewportShading);
   
   const objectRefs = useRef({});
 
@@ -117,6 +118,14 @@ export default function SceneObjects() {
       emissiveIntensity: isSelected ? 0.2 : 0
     };
 
+    if (viewportShading === 'wireframe') {
+      return <meshBasicMaterial color={obj.color} wireframe={true} />;
+    }
+    
+    if (viewportShading === 'solid') {
+      return <meshLambertMaterial color="#cccccc" {...emissiveProps} />;
+    }
+
     switch (obj.materialType) {
       case 'basic': 
         return <meshBasicMaterial color={obj.color} wireframe={false} />;
@@ -134,8 +143,13 @@ export default function SceneObjects() {
 
   const renderObjectBody = (obj, isSelected) => {
     if (obj.category === 'mesh' || obj.type === 'cube') {
+      const castsShadow = viewportShading === 'rendered';
       return (
-        <mesh onPointerDown={(e) => handlePointerDown(e, obj.id)}>
+        <mesh 
+          onPointerDown={(e) => handlePointerDown(e, obj.id)}
+          castShadow={castsShadow}
+          receiveShadow={castsShadow}
+        >
           {renderGeometry(obj.type)}
           {renderMaterial(obj, isSelected)}
         </mesh>
