@@ -107,34 +107,63 @@ export default function WorldProperties() {
 
           {worldSettings.backgroundType === 'sky' && (
             <>
-              <div className="flex flex-col gap-1 mt-1">
-                <div className="flex justify-between">
-                  <span className="text-[#a4a4a4]">Turbidity</span>
-                  <span className="text-white text-xs">{worldSettings.skyTurbidity.toFixed(1)}</span>
+              {[
+                { label: 'Turbidity',   key: 'skyTurbidity',       min: 0,   max: 20,     step: 0.1,    dec: 1 },
+                { label: 'Rayleigh',    key: 'skyRayleigh',        min: 0,   max: 4,      step: 0.01,   dec: 2 },
+                { label: 'Mie Coeff',   key: 'skyMieCoefficient',  min: 0,   max: 0.1,    step: 0.001,  dec: 3 },
+                { label: 'Mie Dir G',   key: 'skyMieDirectionalG', min: 0,   max: 1,      step: 0.01,   dec: 2 },
+                { label: 'Azimuth',     key: 'skyAzimuth',         min: 0,   max: 1,      step: 0.01,   dec: 2 },
+                { label: 'Inclination', key: 'skyInclination',     min: 0,   max: 0.5,    step: 0.005,  dec: 3 },
+                { label: 'Distance',    key: 'skyDistance',        min: 1000, max: 900000, step: 1000,  dec: 0 },
+              ].map(({ label, key, min, max, step, dec }) => (
+                <div key={key} className="flex flex-col gap-1 mt-1">
+                  <div className="flex justify-between">
+                    <span className="text-[#a4a4a4]">{label}</span>
+                    <span className="text-white text-xs">{Number(worldSettings[key]).toFixed(dec)}</span>
+                  </div>
+                  <input type="range" min={min} max={max} step={step}
+                    value={worldSettings[key]}
+                    onChange={(e) => updateWorldSettings({ [key]: parseFloat(e.target.value) })}
+                    className="w-full accent-[#4772b3]" />
                 </div>
-                <input 
-                  type="range" min="0" max="20" step="0.1"
-                  value={worldSettings.skyTurbidity}
-                  onChange={(e) => updateWorldSettings({ skyTurbidity: parseFloat(e.target.value) })}
-                  className="w-full accent-[#4772b3]"
-                />
-              </div>
-              
-              <div className="flex flex-col gap-1 mt-1">
-                <div className="flex justify-between">
-                  <span className="text-[#a4a4a4]">Rayleigh</span>
-                  <span className="text-white text-xs">{worldSettings.skyRayleigh.toFixed(2)}</span>
-                </div>
-                <input 
-                  type="range" min="0" max="4" step="0.01"
-                  value={worldSettings.skyRayleigh}
-                  onChange={(e) => updateWorldSettings({ skyRayleigh: parseFloat(e.target.value) })}
-                  className="w-full accent-[#4772b3]"
-                />
-              </div>
+              ))}
             </>
           )}
           
+        </div>
+      </div>
+
+      {/* Rendered Stage Floor */}
+      <div className="bg-[#303030] rounded border border-[#1d1d1d]">
+        <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d]">Render Stage Floor</div>
+        <div className="p-3 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[#a4a4a4]">Color</span>
+            <div className="flex items-center gap-2">
+              <input type="color" value={worldSettings.stageFloorColor}
+                onChange={(e) => updateWorldSettings({ stageFloorColor: e.target.value })}
+                className="w-16 h-6 p-0 border-0 rounded cursor-pointer bg-transparent" />
+              <span className="font-mono text-white text-[10px] uppercase w-14">{worldSettings.stageFloorColor}</span>
+            </div>
+          </div>
+          {[
+            { label: 'Size',       key: 'stageFloorSize',      min: 10,  max: 500,  step: 10,   dec: 0 },
+            { label: 'Roughness',  key: 'stageFloorRoughness', min: 0,   max: 1,    step: 0.01, dec: 2 },
+            { label: 'Metalness',  key: 'stageFloorMetalness', min: 0,   max: 1,    step: 0.01, dec: 2 },
+            { label: 'Fog Near',   key: 'stageFogNear',        min: 1,   max: 80,   step: 0.5,  dec: 1 },
+            { label: 'Fog Far',    key: 'stageFogFar',         min: 5,   max: 200,  step: 1,    dec: 0 },
+          ].map(({ label, key, min, max, step, dec }) => (
+            <div key={key} className="flex flex-col gap-1">
+              <div className="flex justify-between">
+                <span className="text-[#a4a4a4]">{label}</span>
+                <span className="text-white text-xs">{Number(worldSettings[key]).toFixed(dec)}</span>
+              </div>
+              <input type="range" min={min} max={max} step={step}
+                value={worldSettings[key]}
+                onChange={(e) => updateWorldSettings({ [key]: parseFloat(e.target.value) })}
+                className="w-full accent-[#4772b3]" />
+            </div>
+          ))}
         </div>
       </div>
 
@@ -350,6 +379,47 @@ export default function WorldProperties() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* ── CAMERA CONTROLS ─────────────────────────────── */}
+      <div className="pt-1 pb-0.5 px-1 text-[10px] font-semibold text-[#666] uppercase tracking-widest">Camera Controls</div>
+
+      <div className="bg-[#303030] rounded border border-[#1d1d1d]">
+        <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d]">Orbit Controls</div>
+        <div className="p-3 flex flex-col gap-3">
+          {[
+            { label: 'Min Distance',  key: 'orbitMinDistance', min: 0.1, max: 10,  step: 0.1, dec: 1 },
+            { label: 'Max Distance',  key: 'orbitMaxDistance', min: 10,  max: 1000, step: 5,  dec: 0 },
+            { label: 'Zoom Speed',    key: 'orbitZoomSpeed',   min: 0.1, max: 5,   step: 0.1, dec: 1 },
+          ].map(({ label, key, min, max, step, dec }) => (
+            <div key={key} className="flex flex-col gap-1">
+              <div className="flex justify-between">
+                <span className="text-[#a4a4a4]">{label}</span>
+                <span className="text-white text-xs">{Number(worldSettings[key]).toFixed(dec)}</span>
+              </div>
+              <input type="range" min={min} max={max} step={step}
+                value={worldSettings[key]}
+                onChange={(e) => updateWorldSettings({ [key]: parseFloat(e.target.value) })}
+                className="w-full accent-[#4772b3]" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-[#303030] rounded border border-[#1d1d1d]">
+        <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d]">Fly Controls</div>
+        <div className="p-3 flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <div className="flex justify-between">
+              <span className="text-[#a4a4a4]">Roll Speed</span>
+              <span className="text-white text-xs">{Number(worldSettings.flyRollSpeed).toFixed(2)}</span>
+            </div>
+            <input type="range" min={0.01} max={2} step={0.01}
+              value={worldSettings.flyRollSpeed}
+              onChange={(e) => updateWorldSettings({ flyRollSpeed: parseFloat(e.target.value) })}
+              className="w-full accent-[#4772b3]" />
+          </div>
+        </div>
       </div>
 
     </div>

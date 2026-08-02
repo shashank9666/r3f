@@ -160,7 +160,9 @@ export const useStore = create(
     skyDistance: 450000,
     skyInclination: 0,
     skyAzimuth: 0.25,
-    skySunPosition: [100, 20, 100],
+    skySunX: 100,
+    skySunY: 20,
+    skySunZ: 100,
     skyTurbidity: 10,
     skyRayleigh: 3,
     skyMieCoefficient: 0.005,
@@ -220,7 +222,9 @@ export const useStore = create(
     skyDistance: 450000,
     skyInclination: 0,
     skyAzimuth: 0.25,
-    skySunPosition: [100, 20, 100],
+    skySunX: 100,
+    skySunY: 20,
+    skySunZ: 100,
     skyTurbidity: 10,
     skyRayleigh: 3,
     skyMieCoefficient: 0.005,
@@ -576,7 +580,7 @@ export const useStore = create(
   })
 }), {
   name: 'r3f-editor-storage',
-  version: 2,
+  version: 3,
   storage: createJSONStorage(() => localStorage),
   // Deep-merge: fill any missing keys from the initial state defaults
   migrate: (persistedState, version) => {
@@ -596,6 +600,16 @@ export const useStore = create(
       fogFar: 100,
       fogDensity: 0.01,
       ambientIntensity: 0.5,
+      ambientColor: '#ffffff',
+      showGrid: true,
+      // Procedural Sky
+      skyDistance: 450000,
+      skyInclination: 0,
+      skyAzimuth: 0.25,
+      skySunX: 100,
+      skySunY: 20,
+      skySunZ: 100,
+      skyTurbidity: 10,
       ambientColor: '#ffffff',
       showGrid: true,
       skySunPosition: [100, 20, 100],
