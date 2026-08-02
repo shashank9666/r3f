@@ -2,6 +2,7 @@
 
 import { useStore } from "../store/useStore";
 import { USDZExporter } from "three-stdlib";
+import AddMenu from "./AddMenu";
 
 export default function TopMenu() {
   const scene = useStore((state) => state.scene);
@@ -54,7 +55,7 @@ export default function TopMenu() {
         <div className="py-1.5 px-3 hover:bg-[#3b3b3b] rounded transition-colors cursor-default">Select</div>
         
         {/* Add Menu */}
-        <div className="py-1.5 px-3 hover:bg-[#3b3b3b] rounded transition-colors cursor-default">Add</div>
+        <AddMenu />
         
         {/* Object Menu */}
         <div className="py-1.5 px-3 hover:bg-[#3b3b3b] rounded transition-colors cursor-default">Object</div>

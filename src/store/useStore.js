@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export const CANVAS_SETTINGS = {
   shadows: true,
@@ -53,7 +54,9 @@ export const AXES_SETTINGS = {
 
 
 // Store constant default values for the viewport
-export const useStore = create((set) => ({
+export const useStore = create(
+  persist(
+    (set) => ({
   viewport: {
     camera: {
       position: [12, 9, 12],
@@ -121,13 +124,40 @@ export const useStore = create((set) => ({
   // --- Interaction Engine State ---
 
   // Scene Graph
-  objects: [
-    { id: 'default-cube', type: 'cube', position: [0, 1, 0], rotation: [0, 0, 0], scale: [1, 1, 1], color: '#8c8c8c' }
-  ],
+  objects: [],
   setObjects: (objects) => set({ objects }),
   updateObject: (id, updates) => set((state) => ({
     objects: state.objects.map(obj => obj.id === id ? { ...obj, ...updates } : obj)
   })),
+  addObject: (type, category, properties = {}) => set((state) => {
+    const newId = `${type}-${Date.now()}`;
+    const newObject = {
+      id: newId,
+      type,
+      category,
+      position: [0, 1, 0],
+      rotation: [0, 0, 0],
+      scale: [1, 1, 1],
+      color: '#cccccc', // Slightly brighter default
+      ...properties
+    };
+    
+    // Push the previous state to history
+    const historyAction = {
+      type: 'ADD_OBJECT',
+      previousObjects: [...state.objects],
+      previousSelected: [...state.selectedIds],
+      previousActive: state.activeId
+    };
+    
+    return {
+      objects: [...state.objects, newObject],
+      selectedIds: [newId],
+      activeId: newId,
+      undoStack: [...state.undoStack, historyAction],
+      redoStack: []
+    };
+  }),
 
   // Selection
   selectedIds: [],
@@ -166,4 +196,19 @@ export const useStore = create((set) => ({
     const newRedoStack = state.redoStack.slice(0, -1);
     return { redoStack: newRedoStack, undoStack: [...state.undoStack, action] };
   })
+}), {
+  name: 'r3f-editor-storage',
+  storage: createJSONStorage(() => localStorage),
+  partialize: (state) => ({
+    // Only persist these state properties
+    objects: state.objects,
+    viewport: state.viewport,
+    showSplash: state.showSplash,
+    projection: state.projection,
+    isCameraView: state.isCameraView,
+    savedCameraState: state.savedCameraState,
+    zoomLevel: state.zoomLevel,
+    zoomSpeed: state.zoomSpeed,
+    movementSpeed: state.movementSpeed,
+  }),
 }));

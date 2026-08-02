@@ -98,40 +98,7 @@ export default function Viewport() {
           </group>
         )}
 
-        {/* Dummy Camera Wireframe - Yellow */}
-        {!isCameraView && (
-          <group position={[-6, 3, 6]} rotation={[0.0, -0.8, 0]}>
-            {/* Pyramid body */}
-            <mesh rotation={[Math.PI / 2, Math.PI / 4, 0]}>
-              <coneGeometry args={[1, 2, 4]} />
-              <meshBasicMaterial color="#e5cc22" wireframe />
-            </mesh>
-            {/* Top indicator triangle */}
-            <mesh position={[0, 1.2, -1]} rotation={[0, 0, 0]}>
-              <coneGeometry args={[0.5, 0.8, 3]} />
-              <meshBasicMaterial color="#e5cc22" wireframe />
-            </mesh>
-          </group>
-        )}
 
-        {/* Dummy Light Wireframe */}
-        <group position={[3, 6, -2]}>
-          {/* Horizontal Ring */}
-          <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[0.95, 1, 32]} />
-            <meshBasicMaterial color="#000000" side={2} />
-          </mesh>
-          {/* Vertical Ring */}
-          <mesh>
-            <ringGeometry args={[0.95, 1, 32]} />
-            <meshBasicMaterial color="#000000" side={2} />
-          </mesh>
-          {/* Pole connecting to grid */}
-          <mesh position={[0, -3, 0]}>
-            <cylinderGeometry args={[0.01, 0.01, 6]} />
-            <meshBasicMaterial color="#000000" />
-          </mesh>
-        </group>
 
         {/* 3D Cursor (Red/White circle with crosshair) */}
         <group position={[0, 0, 0]}>
