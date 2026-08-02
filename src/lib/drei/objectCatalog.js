@@ -614,6 +614,8 @@ export const DREI_OBJECTS = [
       num('modelScale', 'Scale', 0.01, 0.0001, 100, 0.0001),
       bool('castShadow', 'Cast Shadow', true),
       bool('receiveShadow', 'Receive Shadow', true),
+      bool('playAnimation', 'Play Animation', true),
+      int('animationIndex', 'Animation Index', 0, 0, 32),
     ],
   },
   {

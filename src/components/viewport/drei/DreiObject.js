@@ -455,6 +455,8 @@ function GltfBody({ p }) {
 function FbxBody({ p }) {
   const fbx = useFBX(p.src);
   const cloned = useMemo(() => fbx.clone(true), [fbx]);
+  const { actions, names } = useAnimations(fbx.animations, cloned);
+
   React.useEffect(() => {
     cloned.traverse((child) => {
       if (child.isMesh) {
@@ -463,6 +465,14 @@ function FbxBody({ p }) {
       }
     });
   }, [cloned, p.castShadow, p.receiveShadow]);
+
+  React.useEffect(() => {
+    if (!p.playAnimation || !names.length) return undefined;
+    const name = names[Math.min(p.animationIndex, names.length - 1)];
+    actions[name]?.reset().fadeIn(0.2).play();
+    return () => { actions[name]?.fadeOut(0.2).stop(); };
+  }, [actions, names, p.playAnimation, p.animationIndex]);
+
   return <primitive object={cloned} scale={p.modelScale} />;
 }
 
