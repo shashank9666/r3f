@@ -1,10 +1,51 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { TransformControls } from '@react-three/drei';
 import * as THREE from 'three';
+
 import ModalTransformHandler from './ModalTransformHandler';
+
+function SceneObjectItem({ obj, isSelected, isActive, transformState, updateObject, renderObjectBody, objectRefs }) {
+  const [groupEl, setGroupEl] = useState(null);
+
+  return (
+    <React.Fragment>
+      <group 
+        ref={(el) => {
+          setGroupEl(el);
+          if (el) objectRefs.current[obj.id] = el;
+          else delete objectRefs.current[obj.id];
+        }}
+        position={obj.position} 
+        rotation={obj.rotation} 
+        scale={obj.scale}
+      >
+        {renderObjectBody(obj, isSelected)}
+      </group>
+      
+      {isActive && transformState.mode !== 'idle' && groupEl && (
+        <TransformControls
+          object={groupEl}
+          mode={transformState.mode}
+          showX={transformState.axisConstraint === null || transformState.axisConstraint === 'X'}
+          showY={transformState.axisConstraint === null || transformState.axisConstraint === 'Y'}
+          showZ={transformState.axisConstraint === null || transformState.axisConstraint === 'Z'}
+          onDraggingChanged={(e) => {
+            if (!e.value) {
+              updateObject(obj.id, {
+                position: [groupEl.position.x, groupEl.position.y, groupEl.position.z],
+                rotation: [groupEl.rotation.x, groupEl.rotation.y, groupEl.rotation.z],
+                scale: [groupEl.scale.x, groupEl.scale.y, groupEl.scale.z]
+              });
+            }
+          }}
+        />
+      )}
+    </React.Fragment>
+  );
+}
 
 export default function SceneObjects() {
   const objects = useStore((state) => state.objects);
@@ -13,6 +54,7 @@ export default function SceneObjects() {
   const activeId = useStore((state) => state.activeId);
   const transformState = useStore((state) => state.transformState);
   const setTransformState = useStore((state) => state.setTransformState);
+  const updateObject = useStore((state) => state.updateObject);
   
   const objectRefs = useRef({});
 
@@ -42,9 +84,15 @@ export default function SceneObjects() {
           startPositions
         });
       } else if (key === 'r' && !transformState.active) {
-        setTransformState({ mode: 'rotate', axisConstraint: null }); // Legacy R
+        setTransformState({ mode: 'rotate', axisConstraint: null }); // Gizmo rotate
       } else if (key === 's' && !transformState.active) {
-        setTransformState({ mode: 'scale', axisConstraint: null }); // Legacy S
+        setTransformState({ mode: 'scale', axisConstraint: null }); // Gizmo scale
+      } else if (key === 'x' && transformState.mode !== 'idle') {
+        setTransformState({ axisConstraint: transformState.axisConstraint === 'X' ? null : 'X' });
+      } else if (key === 'y' && transformState.mode !== 'idle') {
+        setTransformState({ axisConstraint: transformState.axisConstraint === 'Y' ? null : 'Y' });
+      } else if (key === 'z' && transformState.mode !== 'idle') {
+        setTransformState({ axisConstraint: transformState.axisConstraint === 'Z' ? null : 'Z' });
       } else if (e.key === 'Escape' && !transformState.active) {
         setTransformState({ mode: 'idle', axisConstraint: null });
       }
@@ -52,20 +100,18 @@ export default function SceneObjects() {
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [setTransformState, transformState.active, selectedIds, objects]);
+  }, [setTransformState, transformState.mode]);
 
   const handlePointerDown = (e, id) => {
     e.stopPropagation(); // Prevent clicking on things behind
     
     if (e.ctrlKey || e.metaKey) {
-      // Toggle selection
       if (selectedIds.includes(id)) {
         setSelectedIds(selectedIds.filter(selectedId => selectedId !== id));
       } else {
         setSelectedIds([...selectedIds, id]);
       }
     } else {
-      // Select only this object
       setSelectedIds([id]);
     }
   };
@@ -171,39 +217,18 @@ export default function SceneObjects() {
   return (
     <>
       <ModalTransformHandler objectRefs={objectRefs} />
-      
-      {objects.map((obj) => {
-        const isSelected = selectedIds.includes(obj.id);
-        const isActive = activeId === obj.id;
-        
-        // Use TransformControls only for Scale and Rotate currently (or if modal is false)
-        if (isActive && !transformState.active && transformState.mode !== 'idle' && transformState.mode !== 'translate') {
-          return (
-            <TransformControls
-              key={`${obj.id}-transform`}
-              mode={transformState.mode}
-              position={obj.position}
-              rotation={obj.rotation}
-              scale={obj.scale}
-              makeDefault
-            >
-              {renderObjectBody(obj, isSelected)}
-            </TransformControls>
-          );
-        }
-
-        return (
-          <group 
-            key={obj.id} 
-            ref={(el) => (objectRefs.current[obj.id] = el)}
-            position={obj.position} 
-            rotation={obj.rotation} 
-            scale={obj.scale}
-          >
-            {renderObjectBody(obj, isSelected)}
-          </group>
-        );
-      })}
+      {objects.map((obj) => (
+        <SceneObjectItem 
+          key={obj.id}
+          obj={obj}
+          isSelected={selectedIds.includes(obj.id)}
+          isActive={activeId === obj.id}
+          transformState={transformState}
+          updateObject={updateObject}
+          renderObjectBody={renderObjectBody}
+          objectRefs={objectRefs}
+        />
+      ))}
     </>
   );
 }

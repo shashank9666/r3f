@@ -8,6 +8,7 @@ import NavigationToolbar from "./ViewportNavigation/NavigationToolbar";
 import NavigationGizmo from "./NavigationGizmo/NavigationGizmo";
 import SceneObjects from "./SceneObjects";
 import ViewportNavigationHandler from "./ViewportNavigationHandler";
+import TransformHUD from "./TransformHUD";
 
 function SceneRegister() {
   const { scene, camera } = useThree();
@@ -39,6 +40,7 @@ export default function Viewport() {
   return (
     <div className="relative w-full h-screen bg-[#282828] select-none overflow-hidden">
       <NavigationToolbar />
+      <TransformHUD />
       
       {/* Camera View Overlay */}
       {isCameraView && (
