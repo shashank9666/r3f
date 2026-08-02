@@ -267,34 +267,17 @@ export default function WorldProperties() {
         )}
       </div>
 
-      {/* Soft Shadows */}
-      <div className="bg-[#303030] rounded border border-[#1d1d1d]">
+      {/* Soft Shadows — disabled: patches global ShaderChunks, breaks MeshLambertMaterial */}
+      <div className="bg-[#303030] rounded border border-[#1d1d1d] opacity-50 pointer-events-none select-none">
         <div className="p-2 font-semibold text-[#a4a4a4] bg-[#2d2d2d] border-b border-[#1d1d1d] flex items-center gap-2">
-          <input type="checkbox" checked={worldSettings.softShadowsEnabled}
-            onChange={(e) => updateWorldSettings({ softShadowsEnabled: e.target.checked })}
-            className="accent-[#4772b3]" />
+          <input type="checkbox" disabled className="accent-[#4772b3]" />
           <span>Soft Shadows</span>
+          <span className="ml-auto text-[10px] text-yellow-500 font-normal">⚠ Incompatible</span>
         </div>
-        {worldSettings.softShadowsEnabled && (
-          <div className="p-3 flex flex-col gap-3">
-            {[
-              { label: 'Focus',   key: 'softShadowsFocus',   min: 0,  max: 2,  step: 0.01 },
-              { label: 'Size',    key: 'softShadowsSize',    min: 1,  max: 100, step: 1 },
-              { label: 'Samples', key: 'softShadowsSamples', min: 1,  max: 40,  step: 1 },
-            ].map(({ label, key, min, max, step }) => (
-              <div key={key} className="flex flex-col gap-1">
-                <div className="flex justify-between">
-                  <span className="text-[#a4a4a4]">{label}</span>
-                  <span className="text-white text-xs">{worldSettings[key]}</span>
-                </div>
-                <input type="range" min={min} max={max} step={step}
-                  value={worldSettings[key]}
-                  onChange={(e) => updateWorldSettings({ [key]: parseFloat(e.target.value) })}
-                  className="w-full accent-[#4772b3]" />
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="p-2 text-[10px] text-[#888] leading-relaxed">
+          SoftShadows patches Three.js global ShaderChunks — causes shader compile errors with
+          MeshLambertMaterial. Use PCF Soft in Render → Shadows instead.
+        </div>
       </div>
 
       {/* Accumulative Shadows */}

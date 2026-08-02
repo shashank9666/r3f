@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
-import { OrbitControls, FlyControls, OrthographicCamera, PerspectiveCamera, Grid, Edges, Environment, Sky, ContactShadows, SoftShadows, AccumulativeShadows, RandomizedLight, Backdrop } from "@react-three/drei";
+import { OrbitControls, FlyControls, OrthographicCamera, PerspectiveCamera, Grid, Edges, Environment, Sky, ContactShadows, AccumulativeShadows, RandomizedLight, Backdrop } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette, DepthOfField } from "@react-three/postprocessing";
 import { Pixelation } from './effects/Pixelation';
 import { useStore, CANVAS_SETTINGS, GRID_SETTINGS, FOG_SETTINGS, AXES_SETTINGS } from "../../store/useStore";
@@ -120,10 +120,10 @@ export default function Viewport() {
         
         {worldSettings.backgroundType === 'sky' && (
           <Sky 
-            distance={450000} 
+            distance={worldSettings.skyDistance}
             sunPosition={worldSettings.skySunPosition} 
-            inclination={0} 
-            azimuth={0.25} 
+            inclination={worldSettings.skyInclination}
+            azimuth={worldSettings.skyAzimuth}
             turbidity={worldSettings.skyTurbidity}
             rayleigh={worldSettings.skyRayleigh}
             mieCoefficient={worldSettings.skyMieCoefficient}
@@ -140,12 +140,25 @@ export default function Viewport() {
           />
         )}
 
-        {/* Fog */}
-        {worldSettings.fogEnabled && worldSettings.fogType === 'linear' && (
-          <fog attach="fog" args={[worldSettings.fogColor, worldSettings.fogNear, worldSettings.fogFar]} />
-        )}
-        {worldSettings.fogEnabled && worldSettings.fogType === 'exponential' && (
-          <fogExp2 attach="fog" args={[worldSettings.fogColor, worldSettings.fogDensity]} />
+        {/* Fog — in rendered mode always apply a scene-blending fog so floor edges dissolve */}
+        {viewportShading === 'rendered' ? (
+          <fog
+            attach="fog"
+            args={[
+              worldSettings.backgroundType === 'color' ? worldSettings.backgroundColor : '#303030',
+              worldSettings.stageFogNear,
+              worldSettings.stageFogFar,
+            ]}
+          />
+        ) : (
+          <>
+            {worldSettings.fogEnabled && worldSettings.fogType === 'linear' && (
+              <fog attach="fog" args={[worldSettings.fogColor, worldSettings.fogNear, worldSettings.fogFar]} />
+            )}
+            {worldSettings.fogEnabled && worldSettings.fogType === 'exponential' && (
+              <fogExp2 attach="fog" args={[worldSettings.fogColor, worldSettings.fogDensity]} />
+            )}
+          </>
         )}
 
         {isWalking ? (
@@ -154,7 +167,7 @@ export default function Viewport() {
               controlsRef.current = node;
               if (node) setControls(node);
             }} 
-            makeDefault movementSpeed={movementSpeed} rollSpeed={0.5} dragToLook={false} 
+            makeDefault movementSpeed={movementSpeed} rollSpeed={worldSettings.flyRollSpeed} dragToLook={false} 
           />
         ) : (
           <OrbitControls 
@@ -163,7 +176,10 @@ export default function Viewport() {
               if (node) setControls(node);
             }} 
             makeDefault 
-            enabled={activeTool !== 'box-select'} 
+            enabled={activeTool !== 'box-select'}
+            minDistance={worldSettings.orbitMinDistance}
+            maxDistance={worldSettings.orbitMaxDistance}
+            zoomSpeed={worldSettings.orbitZoomSpeed}
             mouseButtons={{
               LEFT: activeTool === 'pan' ? 2 : activeTool === 'zoom' ? 1 : 99,
               MIDDLE: 0,
@@ -207,11 +223,16 @@ export default function Viewport() {
           </group>
         )}
 
-        {/* Infinite Stage for Rendered Mode */}
+        {/* Rendered Mode Stage Floor */}
         {viewportShading === 'rendered' && (
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-            <planeGeometry args={[1000, 1000]} />
-            <meshStandardMaterial color="#ffffff" roughness={1} metalness={0} />
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
+            <planeGeometry args={[worldSettings.stageFloorSize, worldSettings.stageFloorSize, 1, 1]} />
+            <meshStandardMaterial
+              color={worldSettings.stageFloorColor}
+              roughness={worldSettings.stageFloorRoughness}
+              metalness={worldSettings.stageFloorMetalness}
+              fog={true}
+            />
           </mesh>
         )}
 
@@ -249,19 +270,13 @@ export default function Viewport() {
             opacity={worldSettings.contactShadowsOpacity}
             blur={worldSettings.contactShadowsBlur}
             far={worldSettings.contactShadowsFar}
-            resolution={256}
-            scale={20}
+            resolution={worldSettings.contactShadowsResolution}
+            scale={worldSettings.contactShadowsScale}
           />
         )}
 
-        {/* Drei Staging: Soft Shadows */}
-        {worldSettings.softShadowsEnabled && (
-          <SoftShadows
-            focus={worldSettings.softShadowsFocus}
-            size={worldSettings.softShadowsSize}
-            samples={worldSettings.softShadowsSamples}
-          />
-        )}
+        {/* NOTE: SoftShadows patches global ShaderChunks and breaks MeshLambertMaterial.
+             Use ContactShadows instead, which is safer and renders as a separate mesh. */}
 
         {/* Drei Staging: Accumulative Shadows */}
         {worldSettings.accumulativeShadowsEnabled && (
@@ -269,10 +284,14 @@ export default function Viewport() {
             temporal
             frames={worldSettings.accumulativeShadowsFrames}
             blend={worldSettings.accumulativeShadowsBlend}
-            position={[0, -0.49, 0]}
-            scale={10}
+            position={[0, worldSettings.accumulativeShadowsPositionY, 0]}
+            scale={worldSettings.accumulativeShadowsScale}
           >
-            <RandomizedLight amount={8} radius={5} position={[5, 5, -10]} />
+            <RandomizedLight
+              amount={worldSettings.accumulativeShadowsLightAmount}
+              radius={worldSettings.accumulativeShadowsLightRadius}
+              position={[5, 5, -10]}
+            />
           </AccumulativeShadows>
         )}
 
