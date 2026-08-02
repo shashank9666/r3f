@@ -4,7 +4,7 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Hud, PerspectiveCamera, OrthographicCamera, Text } from '@react-three/drei';
+import { Hud, PerspectiveCamera, OrthographicCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import Axis from './Axis';
 import { useStore } from '../../../store/useStore';
@@ -44,20 +44,6 @@ function GizmoAxisNode({ axis, onAxisClick }) {
         isNegative={axis.isNegative}
         onClick={() => onAxisClick(axis.direction)}
       />
-      
-      {/* Label (only for positive axes) */}
-      {!axis.isNegative && (
-        <Text
-          position={[axis.direction[0] * 1.3, axis.direction[1] * 1.3, axis.direction[2] * 1.3]}
-          fontSize={0.3}
-          color="#ffffff"
-          anchorX="center"
-          anchorY="middle"
-          depthTest={false}
-        >
-          {axis.label}
-        </Text>
-      )}
     </group>
   );
 }
