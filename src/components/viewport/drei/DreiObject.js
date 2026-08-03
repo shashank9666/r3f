@@ -428,7 +428,7 @@ function PositionalAudioBody({ p }) {
   );
 }
 
-function GltfBody({ p }) {
+function GltfBody({ p, onPointerDown }) {
   const { scene, animations } = useGLTF(p.src);
   const cloned = useMemo(() => scene.clone(true), [scene]);
   const { actions, names } = useAnimations(animations, cloned);
@@ -449,10 +449,10 @@ function GltfBody({ p }) {
     return () => { actions[name]?.fadeOut(0.2).stop(); };
   }, [actions, names, p.playAnimation, p.animationIndex]);
 
-  return <primitive object={cloned} scale={p.modelScale} />;
+  return <primitive object={cloned} scale={p.modelScale} onPointerDown={onPointerDown} />;
 }
 
-function FbxBody({ p }) {
+function FbxBody({ p, onPointerDown }) {
   const fbx = useFBX(p.src);
   const cloned = useMemo(() => fbx.clone(true), [fbx]);
   const { actions, names } = useAnimations(fbx.animations, cloned);
@@ -473,10 +473,10 @@ function FbxBody({ p }) {
     return () => { actions[name]?.fadeOut(0.2).stop(); };
   }, [actions, names, p.playAnimation, p.animationIndex]);
 
-  return <primitive object={cloned} scale={p.modelScale} />;
+  return <primitive object={cloned} scale={p.modelScale} onPointerDown={onPointerDown} />;
 }
 
-function ObjBody({ p }) {
+function ObjBody({ p, onPointerDown }) {
   const [object, setObject] = React.useState(null);
   const { src, modelScale: scale, color } = p;
   React.useEffect(() => {
@@ -492,7 +492,7 @@ function ObjBody({ p }) {
     });
     return () => { cancelled = true; };
   }, [src, color]);
-  return object ? <primitive object={object} scale={scale} /> : null;
+  return object ? <primitive object={object} scale={scale} onPointerDown={onPointerDown} /> : null;
 }
 
 function TexturePlaneBody({ p }) {
@@ -861,9 +861,9 @@ function Body({ type, p }) {
       );
 
     // Loaders
-    case 'GLTF': return p.src ? <GltfBody p={p} /> : <Placeholder label="No model source" />;
-    case 'FBX': return p.src ? <FbxBody p={p} /> : <Placeholder label="No model source" />;
-    case 'OBJ': return p.src ? <ObjBody p={p} /> : <Placeholder label="No model source" />;
+    case 'GLTF': return p.src ? <GltfBody p={p} onPointerDown={onPointerDown} /> : <Placeholder label="No model source" />;
+    case 'FBX': return p.src ? <FbxBody p={p} onPointerDown={onPointerDown} /> : <Placeholder label="No model source" />;
+    case 'OBJ': return p.src ? <ObjBody p={p} onPointerDown={onPointerDown} /> : <Placeholder label="No model source" />;
     case 'TexturePlane': return p.src ? <TexturePlaneBody p={p} /> : <Placeholder label="No texture source" />;
     case 'KTX2Plane': return p.src ? <Ktx2PlaneBody p={p} /> : <Placeholder label="No KTX2 source" />;
     case 'VideoPlane': return p.src ? <VideoPlaneBody p={p} /> : <Placeholder label="No video source" />;
@@ -912,7 +912,7 @@ export default function DreiObject({ obj, isSelected, onPointerDown }) {
 
   return (
     <group onPointerDown={onPointerDown}>
-      <Body type={obj.type} p={p} />
+      <Body type={obj.type} p={p} onPointerDown={onPointerDown} />
       <SelectionHalo visible={isSelected} />
     </group>
   );

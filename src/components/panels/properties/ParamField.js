@@ -47,7 +47,7 @@ function NumberField({ field, value, onChange }) {
   );
 }
 
-import { useStore } from '../../../../store/useStore';
+import { useStore } from '../../../store/useStore';
 
 function Vec3Field({ field, value, onChange }) {
   const vec = Array.isArray(value) ? value : [0, 0, 0];
